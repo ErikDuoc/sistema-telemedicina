@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      keepalive-time: 30000       # Mantiene la conexión "viva" enviando un pulso cada 30 seg
+      max-lifetime: 1800000       # Tiempo máximo de vida de una conexión (30 min)
+      connection-timeout: 30000   # Cuánto tiempo esperar antes de lanzar error si la BD no responde
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true

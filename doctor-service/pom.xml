@@ -124,6 +124,13 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
 
+        <!-- FLYWAY SUPABASE-->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>11.3.0</version>
+        </dependency>
+
 </dependencies>
 
     <dependencyManagement>
