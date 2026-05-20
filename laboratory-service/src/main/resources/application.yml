@@ -1,0 +1,30 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: laboratory-service
+
+  # JWT Configuration - Use environment variables in production
+  jwt:
+    secret: ${JWT_SECRET:your-secret-key-change-in-production-min-32-characters-long-for-security}
+    expiration: ${JWT_EXPIRATION:86400000}
+
+  datasource:
+    url: jdbc:h2:mem:labdb
+    driver-class-name: org.h2.Driver
+    username: sa
+
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+patient-service:
+  url: http://localhost:8081
+
+notification-service:
+  url: http://localhost:8083

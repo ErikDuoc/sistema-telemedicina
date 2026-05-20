@@ -1,0 +1,93 @@
+# ============================================
+# GIT IGNORE - SEGURIDAD
+# ============================================
+# NUNCA comitear archivos con secretos
+
+# Archivos de configuración con secretos
+.env
+.env.local
+.env.production
+.env.*.local
+*.key
+*.pem
+*.jks
+*.p12
+
+# Archivos de fallback de auditoría
+audit-fallback.log
+audit-*.log
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+.settings/
+
+# Build
+target/
+dist/
+build/
+out/
+*.jar
+*.war
+*.zip
+*.tar.gz
+
+# Dependencies
+node_modules/
+lib/
+deps/
+.m2/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS specific
+Thumbs.db
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+test-results/
+
+# Maven
+*.iml
+.maven
+.mvn
+
+# Gradle
+.gradle
+gradle/
+
+# Database
+*.db
+*.sqlite
+*.h2.db
+
+# SSL/TLS
+*.pem
+*.crt
+*.csr
+*.key
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Lock files (optional - depending on your policy)
+# package-lock.json
+# yarn.lock
+

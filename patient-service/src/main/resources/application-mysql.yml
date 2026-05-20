@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/patientsdb
+    username: root
+    password: root
+
+server:
+  port: 8081

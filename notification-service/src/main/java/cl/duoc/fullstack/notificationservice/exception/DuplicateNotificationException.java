@@ -1,0 +1,8 @@
+package cl.duoc.fullstack.notificationservice.exception;
+
+public class DuplicateNotificationException extends RuntimeException {
+
+    public DuplicateNotificationException(String message) {
+        super(message);
+    }
+}
