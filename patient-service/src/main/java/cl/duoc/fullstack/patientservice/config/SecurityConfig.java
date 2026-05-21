@@ -2,7 +2,6 @@ package cl.duoc.fullstack.patientservice.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,12 +29,9 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/v3/api-docs/**",
                     "/api/public/**",
-                    "/actuator/**"
+                    "/actuator/**",
+                    "/api/patients/**"
                 ).permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/patients/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
-                .requestMatchers(HttpMethod.POST, "/api/patients/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/api/patients/**").hasAnyRole("PATIENT", "DOCTOR", "ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/patients/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());
