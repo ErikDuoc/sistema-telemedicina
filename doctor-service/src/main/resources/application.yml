@@ -5,19 +5,6 @@ spring:
   application:
     name: doctor-service
 
-# Swagger
-springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
-    path: /doc/swagger-ui.html
-
-  # JWT Configuration - Use environment variables in production
-  jwt:
-    secret: ${JWT_SECRET:your-secret-key-change-in-production-min-32-characters-long-for-security}
-    expiration: ${JWT_EXPIRATION:86400000}
-
   datasource:
     url: jdbc:h2:mem:doctordb
     driver-class-name: org.h2.Driver
@@ -31,10 +18,21 @@ springdoc:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
-
+      ddl-auto: update
     show-sql: true
-
     properties:
       hibernate:
         format_sql: true
+
+# Swagger
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /doc/swagger-ui.html
+
+# JWT Configuration - Use environment variables in production
+jwt:
+  secret: ${JWT_SECRET:your-secret-key-change-in-production-min-32-characters-long-for-security}
+  expiration: ${JWT_EXPIRATION:86400000}
