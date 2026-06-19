@@ -1,7 +1,10 @@
 server:
   port: 8082
+  servlet:
+    context-path: /doctorservice
 
 spring:
+
   application:
     name: doctor-service
 
@@ -24,15 +27,16 @@ spring:
       hibernate:
         format_sql: true
 
-# Swagger
+## Swagger
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
-    path: /doc/swagger-ui.html
+    #path: /doc/swagger-ui.html
 
 # JWT Configuration - Use environment variables in production
 jwt:
   secret: ${JWT_SECRET:your-secret-key-change-in-production-min-32-characters-long-for-security}
   expiration: ${JWT_EXPIRATION:86400000}
+
