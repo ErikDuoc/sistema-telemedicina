@@ -21,5 +21,14 @@ spring:
     hibernate:
       ddl-auto: update
 
+## Swagger / OpenAPI
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
 server:
   port: 8088
+  servlet:
+    context-path: /clinicalrecordservice
