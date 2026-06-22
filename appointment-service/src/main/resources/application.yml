@@ -23,11 +23,12 @@ spring:
 
 server:
   port: 8087
+  servlet:
+    context-path: /appointmentservice
 
-# Swagger
+## Swagger / OpenAPI
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
-    path: /doc/swagger-ui/index.html

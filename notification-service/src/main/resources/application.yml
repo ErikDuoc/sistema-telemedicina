@@ -1,5 +1,7 @@
 server:
   port: 8083
+  servlet:
+    context-path: /notificationservice
 
 spring:
   application:
@@ -30,3 +32,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+## Swagger / OpenAPI
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
