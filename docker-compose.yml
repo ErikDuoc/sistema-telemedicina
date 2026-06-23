@@ -55,6 +55,24 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  appointment:
+    build:
+      context: ./appointment-service
+      dockerfile: Dockerfile
+    image: appointment-service:latest
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appointment_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: appointment
+      SPRING_DATASOURCE_PASSWORD: appointment123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
 volumes:
   mysql_data:
 

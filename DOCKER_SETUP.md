@@ -12,25 +12,32 @@ Se han creado los siguientes archivos para la integración con Docker:
 - **`doctor-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
 - **`doctor-service/.dockerignore`**: Excluye archivos innecesarios
 
-#### agenda-service (NUEVO)
+#### agenda-service
 - **`agenda-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
 - **`agenda-service/.dockerignore`**: Excluye archivos innecesarios
 - **`agenda-service/src/main/resources/application-mysql.yml`**: Configuración MySQL para la BD `agenda_db`
 - **`agenda-service/pom.xml`**: Añadida dependencia `flyway-mysql` (v10.11.0)
 
+#### appointment-service (NUEVO)
+- **`appointment-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`appointment-service/.dockerignore`**: Excluye archivos innecesarios
+- **`appointment-service/src/main/resources/application-mysql.yml`**: Configuración MySQL para la BD `appointment_db`
+- **`appointment-service/src/main/java/.../client/*Client.java`**: URLs de Feign clients externalizadas via properties
+
 ### Nivel de Raíz
 
-- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service y agenda-service
+- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service y appointment-service
 - **`init-db.sql`**: Script SQL para crear BDs y usuarios
 
 ## Configuración de Base de Datos
 
-La setup actual crea **dos bases de datos separadas**:
+La setup actual crea **tres bases de datos separadas**:
 
 | Servicio | BD | Usuario | Contraseña | Puerto (host) |
 |----------|----|---------| -----------|---------------|
 | doctor-service | `doctors_db` | `doctors` | `doctors123` | 3307 |
 | agenda-service | `agenda_db` | `agenda` | `agenda123` | 3307 |
+| appointment-service | `appointment_db` | `appointment` | `appointment123` | 3307 |
 
 El script `init-db.sql` se ejecuta automáticamente al inicializar MySQL en la sección `/docker-entrypoint-initdb.d/` del volumen.
 
@@ -47,7 +54,7 @@ Fase 2 (Runtime):
   - Imagen: eclipse-temurin:21-jre-jammy (ligera)
   - Copia JAR compilado (comodín *.jar)
   - Usuario no-root por seguridad
-  - Expone puerto 8082 (doctor) o 8085 (agenda)
+  - Expone puerto 8082 (doctor), 8085 (agenda) o 8087 (appointment)
 ```
 
 ## Comandos Rápidos
@@ -79,6 +86,7 @@ docker-compose logs -f
 # Ver logs de un servicio específico
 docker-compose logs doctor
 docker-compose logs agenda
+docker-compose logs appointment
 docker-compose logs mysql
 ```
 
@@ -86,6 +94,7 @@ docker-compose logs mysql
 ```powershell
 docker-compose build --no-cache doctor
 docker-compose build --no-cache agenda
+docker-compose build --no-cache appointment
 ```
 
 ## Acceso a los Servicios
@@ -97,6 +106,10 @@ docker-compose build --no-cache agenda
 ### Agenda Service
 - **API REST**: http://localhost:8085/agendaservice/api/...
 - **Swagger UI**: http://localhost:8085/agendaservice/swagger-ui.html
+
+### Appointment Service (NUEVO)
+- **API REST**: http://localhost:8087/api/appointments
+- **Swagger UI**: http://localhost:8087/doc/swagger-ui/index.html
 
 ### MySQL (desde host)
 ```
@@ -114,6 +127,11 @@ mysql -h localhost -P 3307 -u doctors -pdoctors123 doctors_db
 mysql -h localhost -P 3307 -u agenda -pagenda123 agenda_db
 ```
 
+**BD appointment_db**:
+```sql
+mysql -h localhost -P 3307 -u appointment -pagenda123 appointment_db
+```
+
 ## Estado Actual
 
 ✅ **MySQL 8.0**
@@ -129,12 +147,19 @@ mysql -h localhost -P 3307 -u agenda -pagenda123 agenda_db
 - BD: `doctors_db`
 - Estado: **Ejecutándose** ✓
 
-✅ **Agenda Service** (NUEVO)
+✅ **Agenda Service**
 - Puerto: 8085
 - Java: 21.0.11
 - Perfil: `mysql`
 - BD: `agenda_db`
 - Estado: **Ejecutándose** ✓
+
+✅ **Appointment Service** (NUEVO)
+- Puerto: 8087
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `appointment_db`
+- Estado: **Pendiente de construir**
 
 ## Solución de Problemas
 
@@ -157,8 +182,11 @@ mysql -h localhost -P 3307 -u agenda -pagenda123 agenda_db
 ```powershell
 docker-compose exec mysql mysql -uroot -proot123 -e "
 CREATE DATABASE IF NOT EXISTS agenda_db;
+CREATE DATABASE IF NOT EXISTS appointment_db;
 CREATE USER IF NOT EXISTS 'agenda'@'%' IDENTIFIED BY 'agenda123';
+CREATE USER IF NOT EXISTS 'appointment'@'%' IDENTIFIED BY 'appointment123';
 GRANT ALL PRIVILEGES ON agenda_db.* TO 'agenda'@'%';
+GRANT ALL PRIVILEGES ON appointment_db.* TO 'appointment'@'%';
 FLUSH PRIVILEGES;
 "
 ```
