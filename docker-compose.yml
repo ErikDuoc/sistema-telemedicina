@@ -73,6 +73,24 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  patient:
+    build:
+      context: ./patient-service
+      dockerfile: Dockerfile
+    image: patient-service:latest
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/patients_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: patients
+      SPRING_DATASOURCE_PASSWORD: patients123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
 volumes:
   mysql_data:
 
