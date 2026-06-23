@@ -53,20 +53,25 @@ Se han creado los siguientes archivos para la integración con Docker:
 - **`prescription-service/src/main/java/.../client/ClinicalRecordClient.java`**: URL de Feign client externalizada via properties
 - **`prescription-service/src/main/java/.../client/PharmacyClient.java`**: URL de Feign client externalizada via properties
 
-#### video-consultation-service (NUEVO)
+#### video-consultation-service
 - **`video-consultation-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
 - **`video-consultation-service/.dockerignore`**: Excluye archivos innecesarios
 - **`video-consultation-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `video_consultations_db` con usuario dedicado
 - **`video-consultation-service/src/main/java/.../client/AppointmentClient.java`**: URL de Feign client externalizada via properties
 
+#### laboratory-service (NUEVO)
+- **`laboratory-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`laboratory-service/.dockerignore`**: Excluye archivos innecesarios
+- **`laboratory-service/src/main/resources/application-mysql.yml`**: Configuración MySQL reescrita para la BD `lab_db` con usuario dedicado, JPA y driver config
+
 ### Nivel de Raíz
 
-- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service, payment-service, clinical-record-service, notification-service, prescription-service y video-consultation-service
+- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service, payment-service, clinical-record-service, notification-service, prescription-service, video-consultation-service y laboratory-service
 - **`init-db.sql`**: Script SQL para crear BDs y usuarios
 
 ## Configuración de Base de Datos
 
-La setup actual crea **nueve bases de datos separadas**:
+La setup actual crea **diez bases de datos separadas**:
 
 | Servicio | BD | Usuario | Contraseña | Puerto (host) |
 |----------|----|---------| -----------|---------------|
@@ -79,6 +84,7 @@ La setup actual crea **nueve bases de datos separadas**:
 | notification-service | `notifications_db` | `notifications` | `notifications123` | 3307 |
 | prescription-service | `prescriptions_db` | `prescriptions` | `prescriptions123` | 3307 |
 | video-consultation-service | `video_consultations_db` | `video_consultations` | `video_consultations123` | 3307 |
+| laboratory-service | `lab_db` | `lab` | `lab123` | 3307 |
 
 El script `init-db.sql` se ejecuta automáticamente al inicializar MySQL en la sección `/docker-entrypoint-initdb.d/` del volumen.
 
@@ -95,7 +101,7 @@ Fase 2 (Runtime):
   - Imagen: eclipse-temurin:21-jre-jammy (ligera)
   - Copia JAR compilado (comodín *.jar)
   - Usuario no-root por seguridad
-   - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient), 8084 (payment), 8088 (clinical-record), 8083 (notification), 8089 (prescription) o 8091 (video-consultation)
+   - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient), 8084 (payment), 8088 (clinical-record), 8083 (notification), 8089 (prescription), 8091 (video-consultation) o 8086 (laboratory)
 ```
 
 ## Comandos Rápidos
@@ -134,6 +140,7 @@ docker-compose logs clinical-record
 docker-compose logs notification
 docker-compose logs prescription
 docker-compose logs video-consultation
+docker-compose logs laboratory
 docker-compose logs mysql
 ```
 
@@ -148,6 +155,7 @@ docker-compose build --no-cache clinical-record
 docker-compose build --no-cache notification
 docker-compose build --no-cache prescription
 docker-compose build --no-cache video-consultation
+docker-compose build --no-cache laboratory
 ```
 
 ## Acceso a los Servicios
@@ -189,10 +197,15 @@ docker-compose build --no-cache video-consultation
 - **Swagger UI**: http://localhost:8089/swagger-ui/index.html
 - **H2 Console**: http://localhost:8089/h2-console
 
-### Video Consultation Service (NUEVO)
+### Video Consultation Service
 - **API REST**: http://localhost:8091/api/video-consultations
 - **Swagger UI**: http://localhost:8091/swagger-ui/index.html
 - **H2 Console**: http://localhost:8091/h2-console
+
+### Laboratory Service (NUEVO)
+- **API REST**: http://localhost:8086/api/lab
+- **Swagger UI**: http://localhost:8086/swagger-ui/index.html
+- **H2 Console**: http://localhost:8086/h2-console
 
 ### MySQL (desde host)
 ```
@@ -245,12 +258,17 @@ mysql -h localhost -P 3307 -u prescriptions -pprescriptions123 prescriptions_db
 mysql -h localhost -P 3307 -u video_consultations -pvideo_consultations123 video_consultations_db
 ```
 
+**BD lab_db**:
+```sql
+mysql -h localhost -P 3307 -u lab -plab123 lab_db
+```
+
 ## Estado Actual
 
 ✅ **MySQL 8.0**
 - Puerto: 3307 (host) → 3306 (contenedor)
-- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`, `clinical_records_db`, `notifications_db`, `prescriptions_db`, `video_consultations_db`
-- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`, `clinical_records`, `notifications`, `prescriptions`, `video_consultations`
+- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`, `clinical_records_db`, `notifications_db`, `prescriptions_db`, `video_consultations_db`, `lab_db`
+- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`, `clinical_records`, `notifications`, `prescriptions`, `video_consultations`, `lab`
 - Estado: **Healthy** ✓
 
 ✅ **Doctor Service**
@@ -309,11 +327,18 @@ mysql -h localhost -P 3307 -u video_consultations -pvideo_consultations123 video
 - BD: `prescriptions_db`
 - Estado: **Pendiente de construir**
 
-✅ **Video Consultation Service** (NUEVO)
+✅ **Video Consultation Service**
 - Puerto: 8091
 - Java: 21.0.11
 - Perfil: `mysql`
 - BD: `video_consultations_db`
+- Estado: **Pendiente de construir**
+
+✅ **Laboratory Service** (NUEVO)
+- Puerto: 8086
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `lab_db`
 - Estado: **Pendiente de construir**
 
 ## Solución de Problemas
@@ -344,6 +369,7 @@ CREATE DATABASE IF NOT EXISTS clinical_records_db;
 CREATE DATABASE IF NOT EXISTS notifications_db;
 CREATE DATABASE IF NOT EXISTS prescriptions_db;
 CREATE DATABASE IF NOT EXISTS video_consultations_db;
+CREATE DATABASE IF NOT EXISTS lab_db;
 CREATE USER IF NOT EXISTS 'agenda'@'%' IDENTIFIED BY 'agenda123';
 CREATE USER IF NOT EXISTS 'appointment'@'%' IDENTIFIED BY 'appointment123';
 CREATE USER IF NOT EXISTS 'patients'@'%' IDENTIFIED BY 'patients123';
@@ -352,6 +378,7 @@ CREATE USER IF NOT EXISTS 'clinical_records'@'%' IDENTIFIED BY 'clinical123';
 CREATE USER IF NOT EXISTS 'notifications'@'%' IDENTIFIED BY 'notifications123';
 CREATE USER IF NOT EXISTS 'prescriptions'@'%' IDENTIFIED BY 'prescriptions123';
 CREATE USER IF NOT EXISTS 'video_consultations'@'%' IDENTIFIED BY 'video_consultations123';
+CREATE USER IF NOT EXISTS 'lab'@'%' IDENTIFIED BY 'lab123';
 GRANT ALL PRIVILEGES ON agenda_db.* TO 'agenda'@'%';
 GRANT ALL PRIVILEGES ON appointment_db.* TO 'appointment'@'%';
 GRANT ALL PRIVILEGES ON patients_db.* TO 'patients'@'%';
@@ -360,6 +387,7 @@ GRANT ALL PRIVILEGES ON clinical_records_db.* TO 'clinical_records'@'%';
 GRANT ALL PRIVILEGES ON notifications_db.* TO 'notifications'@'%';
 GRANT ALL PRIVILEGES ON prescriptions_db.* TO 'prescriptions'@'%';
 GRANT ALL PRIVILEGES ON video_consultations_db.* TO 'video_consultations'@'%';
+GRANT ALL PRIVILEGES ON lab_db.* TO 'lab'@'%';
 FLUSH PRIVILEGES;
 "
 ```
