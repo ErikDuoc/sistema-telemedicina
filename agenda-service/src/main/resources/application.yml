@@ -1,5 +1,7 @@
 server:
   port: 8085
+  servlet:
+    context-path: /agendaservice
 
 spring:
   application:
@@ -25,3 +27,11 @@ spring:
 
 doctor-service:
   url: http://localhost:8082
+
+## Swagger / OpenAPI
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+

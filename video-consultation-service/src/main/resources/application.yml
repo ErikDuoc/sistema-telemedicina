@@ -1,3 +1,8 @@
+server:
+  port: 8091
+  servlet:
+    context-path: /videoconsultationservice
+
 spring:
   application:
     name: video-consultation-service
@@ -21,5 +26,9 @@ spring:
     hibernate:
       ddl-auto: update
 
-server:
-  port: 8091
+## Swagger / OpenAPI
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true

@@ -1,3 +1,8 @@
+server:
+  port: 8089
+  servlet:
+    context-path: /prescriptionservice
+
 spring:
   application:
     name: prescription-service
@@ -21,5 +26,9 @@ spring:
     hibernate:
       ddl-auto: update
 
-server:
-  port: 8089
+## Swagger / OpenAPI
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
