@@ -1,0 +1,10 @@
+target
+.git
+.idea
+*.iml
+logs
+.settings
+.mvn
+/.scannerwork
+
+

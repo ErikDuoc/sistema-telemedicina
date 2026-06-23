@@ -1,6 +1,199 @@
-# Docker Setup - doctor-service
+# Docker Setup - Microservicios
 
-Este documento explica cómo ejecutar el microservicio `doctor-service` con Docker Compose.
+Este documento explica cómo ejecutar los microservicios con Docker Compose.
+
+## Archivos Generados
+
+Se han creado los siguientes archivos para la integración con Docker:
+
+### Por Microservicio
+
+#### doctor-service
+- **`doctor-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`doctor-service/.dockerignore`**: Excluye archivos innecesarios
+
+#### agenda-service (NUEVO)
+- **`agenda-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`agenda-service/.dockerignore`**: Excluye archivos innecesarios
+- **`agenda-service/src/main/resources/application-mysql.yml`**: Configuración MySQL para la BD `agenda_db`
+- **`agenda-service/pom.xml`**: Añadida dependencia `flyway-mysql` (v10.11.0)
+
+### Nivel de Raíz
+
+- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service y agenda-service
+- **`init-db.sql`**: Script SQL para crear BDs y usuarios
+
+## Configuración de Base de Datos
+
+La setup actual crea **dos bases de datos separadas**:
+
+| Servicio | BD | Usuario | Contraseña | Puerto (host) |
+|----------|----|---------| -----------|---------------|
+| doctor-service | `doctors_db` | `doctors` | `doctors123` | 3307 |
+| agenda-service | `agenda_db` | `agenda` | `agenda123` | 3307 |
+
+El script `init-db.sql` se ejecuta automáticamente al inicializar MySQL en la sección `/docker-entrypoint-initdb.d/` del volumen.
+
+## Arquitectura de Build
+
+### Dockerfile Multi-stage (ambos microservicios)
+```
+Fase 1 (Build):
+  - Imagen: maven:3.9-eclipse-temurin-21
+  - Copia pom.xml, descarga dependencias
+  - Compila código y empaqueta JAR
+  
+Fase 2 (Runtime):
+  - Imagen: eclipse-temurin:21-jre-jammy (ligera)
+  - Copia JAR compilado (comodín *.jar)
+  - Usuario no-root por seguridad
+  - Expone puerto 8082 (doctor) o 8085 (agenda)
+```
+
+## Comandos Rápidos
+
+### Levantar todos los servicios (con build)
+```powershell
+cd 'E:\Estudio DUOC\Semestre 3\sistema-telemedicina'
+docker-compose up --build
+```
+
+### Levantar en background
+```powershell
+docker-compose up -d
+```
+
+### Detener servicios
+```powershell
+docker-compose down
+```
+
+### Ver logs
+```powershell
+# Ver todos los logs
+docker-compose logs
+
+# Ver logs en tiempo real
+docker-compose logs -f
+
+# Ver logs de un servicio específico
+docker-compose logs doctor
+docker-compose logs agenda
+docker-compose logs mysql
+```
+
+### Reconstruir una imagen específica
+```powershell
+docker-compose build --no-cache doctor
+docker-compose build --no-cache agenda
+```
+
+## Acceso a los Servicios
+
+### Doctor Service
+- **API REST**: http://localhost:8082/doctorservice/api/doctors
+- **Swagger UI**: http://localhost:8082/doctorservice/swagger-ui.html
+
+### Agenda Service
+- **API REST**: http://localhost:8085/agendaservice/api/...
+- **Swagger UI**: http://localhost:8085/agendaservice/swagger-ui.html
+
+### MySQL (desde host)
+```
+Host: localhost
+Puerto: 3307
+```
+
+**BD doctors_db**:
+```sql
+mysql -h localhost -P 3307 -u doctors -pdoctors123 doctors_db
+```
+
+**BD agenda_db**:
+```sql
+mysql -h localhost -P 3307 -u agenda -pagenda123 agenda_db
+```
+
+## Estado Actual
+
+✅ **MySQL 8.0**
+- Puerto: 3307 (host) → 3306 (contenedor)
+- BDs: `doctors_db`, `agenda_db`
+- Usuarios: `doctors`, `agenda`
+- Estado: **Healthy** ✓
+
+✅ **Doctor Service**
+- Puerto: 8082
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `doctors_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Agenda Service** (NUEVO)
+- Puerto: 8085
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `agenda_db`
+- Estado: **Ejecutándose** ✓
+
+## Solución de Problemas
+
+### Error: "Unsupported Database: MySQL 8.0"
+**Causa**: Falta la dependencia `flyway-mysql` en el pom.xml
+**Solución**: Asegurar que `pom.xml` incluye:
+```xml
+<dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-mysql</artifactId>
+    <version>10.11.0</version>
+</dependency>
+```
+
+### Error: "Access denied for user"
+**Causa**: El script `init-db.sql` no se ejecutó correctamente
+**Solución**:
+1. Verificar que `init-db.sql` está en la raíz
+2. Ejecutar manualmente en el contenedor MySQL:
+```powershell
+docker-compose exec mysql mysql -uroot -proot123 -e "
+CREATE DATABASE IF NOT EXISTS agenda_db;
+CREATE USER IF NOT EXISTS 'agenda'@'%' IDENTIFIED BY 'agenda123';
+GRANT ALL PRIVILEGES ON agenda_db.* TO 'agenda'@'%';
+FLUSH PRIVILEGES;
+"
+```
+
+### Error: "Connection refused"
+**Causa**: URL de conexión usa puerto incorrecto
+**Solución**: En Docker, usar `mysql:3306` (puerto interno), no `localhost:3307`
+
+## Configuración Avanzada
+
+### Variables de Entorno (docker-compose.yml)
+```yaml
+SPRING_PROFILES_ACTIVE: mysql          # Perfil de Spring
+JAVA_OPTS: "-Xms512m -Xmx1g"          # Opciones JVM
+SPRING_DATASOURCE_URL: jdbc:mysql://...  # URL de BD interna
+SPRING_DATASOURCE_USERNAME: ...        # Usuario
+SPRING_DATASOURCE_PASSWORD: ...        # Contraseña
+```
+
+### Cambiar Credenciales de BD
+Editar en `docker-compose.yml` y `init-db.sql`, luego ejecutar:
+```powershell
+docker-compose down
+docker volume rm sistema-telemedicina_mysql_data
+docker-compose up --build
+```
+
+## Notas
+
+- Las migraciones de Flyway están deshabilitadas (no hay archivos V*.sql)
+- Hibernate maneja la creación de esquemas automáticamente (`ddl-auto: update`)
+- Cada microservicio tiene su propia BD para evitar acoplamiento
+- El archivo `docker-compose.yml` es el entry point; el script `init-db.sql` se ejecuta automáticamente
+
+
 
 ## Archivos Generados
 
