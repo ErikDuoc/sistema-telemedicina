@@ -127,6 +127,24 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  notification:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    image: notification-service:latest
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notifications_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: notifications
+      SPRING_DATASOURCE_PASSWORD: notifications123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
 volumes:
   mysql_data:
 
