@@ -41,19 +41,26 @@ Se han creado los siguientes archivos para la integración con Docker:
 - **`clinical-record-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `clinical_records_db` con usuario dedicado
 - **`clinical-record-service/src/main/java/.../client/AppointmentClient.java`**: URL de Feign client externalizada via properties
 
-#### notification-service (NUEVO)
+#### notification-service
 - **`notification-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
 - **`notification-service/.dockerignore`**: Excluye archivos innecesarios
 - **`notification-service/src/main/resources/application-mysql.yml`**: Configuración MySQL reescrita para la BD `notifications_db` con usuario dedicado
 
+#### prescription-service (NUEVO)
+- **`prescription-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`prescription-service/.dockerignore`**: Excluye archivos innecesarios
+- **`prescription-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `prescriptions_db` con usuario dedicado
+- **`prescription-service/src/main/java/.../client/ClinicalRecordClient.java`**: URL de Feign client externalizada via properties
+- **`prescription-service/src/main/java/.../client/PharmacyClient.java`**: URL de Feign client externalizada via properties
+
 ### Nivel de Raíz
 
-- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service, payment-service, clinical-record-service y notification-service
+- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service, payment-service, clinical-record-service, notification-service y prescription-service
 - **`init-db.sql`**: Script SQL para crear BDs y usuarios
 
 ## Configuración de Base de Datos
 
-La setup actual crea **siete bases de datos separadas**:
+La setup actual crea **ocho bases de datos separadas**:
 
 | Servicio | BD | Usuario | Contraseña | Puerto (host) |
 |----------|----|---------| -----------|---------------|
@@ -64,6 +71,7 @@ La setup actual crea **siete bases de datos separadas**:
 | payment-service | `payments_db` | `payments` | `payments123` | 3307 |
 | clinical-record-service | `clinical_records_db` | `clinical_records` | `clinical123` | 3307 |
 | notification-service | `notifications_db` | `notifications` | `notifications123` | 3307 |
+| prescription-service | `prescriptions_db` | `prescriptions` | `prescriptions123` | 3307 |
 
 El script `init-db.sql` se ejecuta automáticamente al inicializar MySQL en la sección `/docker-entrypoint-initdb.d/` del volumen.
 
@@ -80,7 +88,7 @@ Fase 2 (Runtime):
   - Imagen: eclipse-temurin:21-jre-jammy (ligera)
   - Copia JAR compilado (comodín *.jar)
   - Usuario no-root por seguridad
-  - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient), 8084 (payment), 8088 (clinical-record) o 8083 (notification)
+   - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient), 8084 (payment), 8088 (clinical-record), 8083 (notification) o 8089 (prescription)
 ```
 
 ## Comandos Rápidos
@@ -117,6 +125,7 @@ docker-compose logs patient
 docker-compose logs payment
 docker-compose logs clinical-record
 docker-compose logs notification
+docker-compose logs prescription
 docker-compose logs mysql
 ```
 
@@ -129,6 +138,7 @@ docker-compose build --no-cache patient
 docker-compose build --no-cache payment
 docker-compose build --no-cache clinical-record
 docker-compose build --no-cache notification
+docker-compose build --no-cache prescription
 ```
 
 ## Acceso a los Servicios
@@ -160,10 +170,15 @@ docker-compose build --no-cache notification
 - **Swagger UI**: http://localhost:8088/swagger-ui/index.html
 - **H2 Console**: http://localhost:8088/h2-console
 
-### Notification Service (NUEVO)
+### Notification Service
 - **API REST**: http://localhost:8083/api/notifications
 - **Swagger UI**: http://localhost:8083/swagger-ui/index.html
 - **H2 Console**: http://localhost:8083/h2-console
+
+### Prescription Service (NUEVO)
+- **API REST**: http://localhost:8089/api/prescriptions
+- **Swagger UI**: http://localhost:8089/swagger-ui/index.html
+- **H2 Console**: http://localhost:8089/h2-console
 
 ### MySQL (desde host)
 ```
@@ -206,12 +221,17 @@ mysql -h localhost -P 3307 -u clinical_records -pclinical123 clinical_records_db
 mysql -h localhost -P 3307 -u notifications -pnotifications123 notifications_db
 ```
 
+**BD prescriptions_db**:
+```sql
+mysql -h localhost -P 3307 -u prescriptions -pprescriptions123 prescriptions_db
+```
+
 ## Estado Actual
 
 ✅ **MySQL 8.0**
 - Puerto: 3307 (host) → 3306 (contenedor)
-- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`, `clinical_records_db`, `notifications_db`
-- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`, `clinical_records`, `notifications`
+- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`, `clinical_records_db`, `notifications_db`, `prescriptions_db`
+- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`, `clinical_records`, `notifications`, `prescriptions`
 - Estado: **Healthy** ✓
 
 ✅ **Doctor Service**
@@ -256,11 +276,18 @@ mysql -h localhost -P 3307 -u notifications -pnotifications123 notifications_db
 - BD: `clinical_records_db`
 - Estado: **Ejecutándose** ✓
 
-✅ **Notification Service** (NUEVO)
+✅ **Notification Service**
 - Puerto: 8083
 - Java: 21.0.11
 - Perfil: `mysql`
 - BD: `notifications_db`
+- Estado: **Pendiente de construir**
+
+✅ **Prescription Service** (NUEVO)
+- Puerto: 8089
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `prescriptions_db`
 - Estado: **Pendiente de construir**
 
 ## Solución de Problemas
@@ -289,18 +316,21 @@ CREATE DATABASE IF NOT EXISTS patients_db;
 CREATE DATABASE IF NOT EXISTS payments_db;
 CREATE DATABASE IF NOT EXISTS clinical_records_db;
 CREATE DATABASE IF NOT EXISTS notifications_db;
+CREATE DATABASE IF NOT EXISTS prescriptions_db;
 CREATE USER IF NOT EXISTS 'agenda'@'%' IDENTIFIED BY 'agenda123';
 CREATE USER IF NOT EXISTS 'appointment'@'%' IDENTIFIED BY 'appointment123';
 CREATE USER IF NOT EXISTS 'patients'@'%' IDENTIFIED BY 'patients123';
 CREATE USER IF NOT EXISTS 'payments'@'%' IDENTIFIED BY 'payments123';
 CREATE USER IF NOT EXISTS 'clinical_records'@'%' IDENTIFIED BY 'clinical123';
 CREATE USER IF NOT EXISTS 'notifications'@'%' IDENTIFIED BY 'notifications123';
+CREATE USER IF NOT EXISTS 'prescriptions'@'%' IDENTIFIED BY 'prescriptions123';
 GRANT ALL PRIVILEGES ON agenda_db.* TO 'agenda'@'%';
 GRANT ALL PRIVILEGES ON appointment_db.* TO 'appointment'@'%';
 GRANT ALL PRIVILEGES ON patients_db.* TO 'patients'@'%';
 GRANT ALL PRIVILEGES ON payments_db.* TO 'payments'@'%';
 GRANT ALL PRIVILEGES ON clinical_records_db.* TO 'clinical_records'@'%';
 GRANT ALL PRIVILEGES ON notifications_db.* TO 'notifications'@'%';
+GRANT ALL PRIVILEGES ON prescriptions_db.* TO 'prescriptions'@'%';
 FLUSH PRIVILEGES;
 "
 ```

@@ -21,6 +21,9 @@ CREATE DATABASE IF NOT EXISTS clinical_records_db;
 -- Crear BD para notification-service
 CREATE DATABASE IF NOT EXISTS notifications_db;
 
+-- Crear BD para prescription-service
+CREATE DATABASE IF NOT EXISTS prescriptions_db;
+
 -- Crear usuario y otorgar permisos para doctors_db
 CREATE USER IF NOT EXISTS 'doctors'@'%' IDENTIFIED BY 'doctors123';
 GRANT ALL PRIVILEGES ON doctors_db.* TO 'doctors'@'%';
@@ -48,6 +51,10 @@ GRANT ALL PRIVILEGES ON clinical_records_db.* TO 'clinical_records'@'%';
 -- Crear usuario y otorgar permisos para notifications_db
 CREATE USER IF NOT EXISTS 'notifications'@'%' IDENTIFIED BY 'notifications123';
 GRANT ALL PRIVILEGES ON notifications_db.* TO 'notifications'@'%';
+
+-- Crear usuario y otorgar permisos para prescriptions_db
+CREATE USER IF NOT EXISTS 'prescriptions'@'%' IDENTIFIED BY 'prescriptions123';
+GRANT ALL PRIVILEGES ON prescriptions_db.* TO 'prescriptions'@'%';
 
 -- Aplicar cambios
 FLUSH PRIVILEGES;
