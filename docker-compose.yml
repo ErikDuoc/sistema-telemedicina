@@ -91,6 +91,24 @@ services:
         condition: service_healthy
     restart: on-failure
 
+  payment:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    image: payment-service:latest
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/payments_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: payments
+      SPRING_DATASOURCE_PASSWORD: payments123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
 volumes:
   mysql_data:
 
