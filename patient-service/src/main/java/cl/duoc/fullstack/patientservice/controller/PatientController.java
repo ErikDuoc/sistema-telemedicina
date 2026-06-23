@@ -3,6 +3,10 @@ package cl.duoc.fullstack.patientservice.controller;
 import cl.duoc.fullstack.patientservice.dto.PatientRequestDTO;
 import cl.duoc.fullstack.patientservice.dto.PatientResponseDTO;
 import cl.duoc.fullstack.patientservice.service.PatientService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -13,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Pacientes", description = "Operaciones para gestionar pacientes")
 @RestController
 @RequestMapping("/api/patients")
 @RequiredArgsConstructor
@@ -21,11 +26,18 @@ public class PatientController {
     private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
     private final PatientService patientService;
 
+    @Operation(summary = "Obtener todos los pacientes", description = "Retorna una lista con todos los pacientes registrados en el sistema")
+    @ApiResponse(responseCode = "200", description = "Lista de pacientes obtenida exitosamente")
     @GetMapping
     public ResponseEntity<List<PatientResponseDTO>> findAll() {
         return ResponseEntity.ok(patientService.findAll());
     }
 
+    @Operation(summary = "Obtener paciente por ID", description = "Busca y retorna un paciente específico según su identificador")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paciente encontrado"),
+            @ApiResponse(responseCode = "404", description = "Paciente no encontrado")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<PatientResponseDTO> findById(@PathVariable Long id) {
         logger.info("Buscando paciente con ID: {}", id);
@@ -37,6 +49,11 @@ public class PatientController {
                 });
     }
 
+    @Operation(summary = "Crear nuevo paciente", description = "Crea un nuevo paciente con datos personales y contactos de emergencia")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Paciente creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos")
+    })
     @PostMapping
     public ResponseEntity<PatientResponseDTO> create(
             @Valid @RequestBody PatientRequestDTO request) {
@@ -50,6 +67,12 @@ public class PatientController {
                 .body(created);
     }
 
+    @Operation(summary = "Actualizar paciente", description = "Actualiza los datos de un paciente existente")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Paciente actualizado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos de entrada inválidos"),
+            @ApiResponse(responseCode = "404", description = "Paciente no encontrado")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<PatientResponseDTO> update(
             @PathVariable Long id,
@@ -67,6 +90,11 @@ public class PatientController {
                 });
     }
 
+    @Operation(summary = "Eliminar paciente", description = "Elimina un paciente del sistema")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Paciente eliminado exitosamente"),
+            @ApiResponse(responseCode = "404", description = "Paciente no encontrado")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
 
