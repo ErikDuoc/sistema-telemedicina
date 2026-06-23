@@ -24,6 +24,9 @@ CREATE DATABASE IF NOT EXISTS notifications_db;
 -- Crear BD para prescription-service
 CREATE DATABASE IF NOT EXISTS prescriptions_db;
 
+-- Crear BD para video-consultation-service
+CREATE DATABASE IF NOT EXISTS video_consultations_db;
+
 -- Crear usuario y otorgar permisos para doctors_db
 CREATE USER IF NOT EXISTS 'doctors'@'%' IDENTIFIED BY 'doctors123';
 GRANT ALL PRIVILEGES ON doctors_db.* TO 'doctors'@'%';
@@ -55,6 +58,10 @@ GRANT ALL PRIVILEGES ON notifications_db.* TO 'notifications'@'%';
 -- Crear usuario y otorgar permisos para prescriptions_db
 CREATE USER IF NOT EXISTS 'prescriptions'@'%' IDENTIFIED BY 'prescriptions123';
 GRANT ALL PRIVILEGES ON prescriptions_db.* TO 'prescriptions'@'%';
+
+-- Crear usuario y otorgar permisos para video_consultations_db
+CREATE USER IF NOT EXISTS 'video_consultations'@'%' IDENTIFIED BY 'video_consultations123';
+GRANT ALL PRIVILEGES ON video_consultations_db.* TO 'video_consultations'@'%';
 
 -- Aplicar cambios
 FLUSH PRIVILEGES;
