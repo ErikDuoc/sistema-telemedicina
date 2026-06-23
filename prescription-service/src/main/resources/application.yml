@@ -27,6 +27,3 @@ server:
 # Feign client base URLs (defaults for local development)
 clinical-record-service:
   url: http://localhost:8088
-
-pharmacy-service:
-  url: http://localhost:8090

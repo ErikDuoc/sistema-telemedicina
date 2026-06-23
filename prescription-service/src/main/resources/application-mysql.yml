@@ -16,6 +16,3 @@ spring:
 
 clinical-record-service:
   url: http://clinical-record-service:8088
-
-pharmacy-service:
-  url: http://pharmacy-service:8090

@@ -18,7 +18,6 @@ public class PrescriptionService {
 
     private final PrescriptionRepository repository;
     private final ClinicalRecordClient clinicalRecordClient;
-    private final PharmacyClient pharmacyClient;
 
     public PrescriptionResponseDTO create(PrescriptionRequestDTO request){
         log.info("Crear receta para paciente: {}, Historial clínico: {}", request.getPatientId(), request.getClinicalRecordId());
@@ -54,14 +53,7 @@ public class PrescriptionService {
             throw new IllegalArgumentException("Historial clínico no existe");
         }
 
-        // Validación 5: Verificar medicamentos en farmacia (fallback graceful)
-        try {
-            pharmacyClient.validateMedication(request);
-        } catch (Exception e) {
-            log.warn("No se pudo validar medicamentos en farmacia, continuando...: {}", e.getMessage());
-            // No fallar si farmacia no responde - resiliencia
-        }
-
+        // Validación 5: Historial clínico verificado - continuar con creación
         Prescription prescription = Prescription.builder()
                 .clinicalRecordId(request.getClinicalRecordId())
                 .patientId(request.getPatientId())
