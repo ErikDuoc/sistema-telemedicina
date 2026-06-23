@@ -1,0 +1,18 @@
+server:
+  port: 8088
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/clinical_records_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: clinical_records
+    password: clinical123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+appointment-service:
+  url: http://appointment-service:8087

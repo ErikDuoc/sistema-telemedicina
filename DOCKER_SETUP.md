@@ -30,19 +30,25 @@ Se han creado los siguientes archivos para la integración con Docker:
 - **`patient-service/src/main/resources/application-mysql.yml`**: Configuración MySQL actualizada para la BD `patients_db` con usuario dedicado
 - **`patient-service/pom.xml`**: Añadida dependencia `flyway-mysql` (v10.11.0)
 
-#### payment-service (NUEVO)
+#### payment-service
 - **`payment-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
 - **`payment-service/.dockerignore`**: Excluye archivos innecesarios
 - **`payment-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `payments_db` con usuario dedicado
 
+#### clinical-record-service (NUEVO)
+- **`clinical-record-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`clinical-record-service/.dockerignore`**: Excluye archivos innecesarios
+- **`clinical-record-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `clinical_records_db` con usuario dedicado
+- **`clinical-record-service/src/main/java/.../client/AppointmentClient.java`**: URL de Feign client externalizada via properties
+
 ### Nivel de Raíz
 
-- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service y payment-service
+- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service, payment-service y clinical-record-service
 - **`init-db.sql`**: Script SQL para crear BDs y usuarios
 
 ## Configuración de Base de Datos
 
-La setup actual crea **cinco bases de datos separadas**:
+La setup actual crea **seis bases de datos separadas**:
 
 | Servicio | BD | Usuario | Contraseña | Puerto (host) |
 |----------|----|---------| -----------|---------------|
@@ -51,6 +57,7 @@ La setup actual crea **cinco bases de datos separadas**:
 | appointment-service | `appointment_db` | `appointment` | `appointment123` | 3307 |
 | patient-service | `patients_db` | `patients` | `patients123` | 3307 |
 | payment-service | `payments_db` | `payments` | `payments123` | 3307 |
+| clinical-record-service | `clinical_records_db` | `clinical_records` | `clinical123` | 3307 |
 
 El script `init-db.sql` se ejecuta automáticamente al inicializar MySQL en la sección `/docker-entrypoint-initdb.d/` del volumen.
 
@@ -67,7 +74,7 @@ Fase 2 (Runtime):
   - Imagen: eclipse-temurin:21-jre-jammy (ligera)
   - Copia JAR compilado (comodín *.jar)
   - Usuario no-root por seguridad
-  - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient) o 8084 (payment)
+  - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient), 8084 (payment) o 8088 (clinical-record)
 ```
 
 ## Comandos Rápidos
@@ -102,6 +109,7 @@ docker-compose logs agenda
 docker-compose logs appointment
 docker-compose logs patient
 docker-compose logs payment
+docker-compose logs clinical-record
 docker-compose logs mysql
 ```
 
@@ -112,6 +120,7 @@ docker-compose build --no-cache agenda
 docker-compose build --no-cache appointment
 docker-compose build --no-cache patient
 docker-compose build --no-cache payment
+docker-compose build --no-cache clinical-record
 ```
 
 ## Acceso a los Servicios
@@ -133,10 +142,15 @@ docker-compose build --no-cache payment
 - **Swagger UI**: http://localhost:8081/swagger-ui/index.html
 - **H2 Console**: http://localhost:8081/h2-console
 
-### Payment Service (NUEVO)
+### Payment Service
 - **API REST**: http://localhost:8084/api/payments
 - **Swagger UI**: http://localhost:8084/swagger-ui/index.html
 - **H2 Console**: http://localhost:8084/h2-console
+
+### Clinical Record Service (NUEVO)
+- **API REST**: http://localhost:8088/api/clinical-records
+- **Swagger UI**: http://localhost:8088/swagger-ui/index.html
+- **H2 Console**: http://localhost:8088/h2-console
 
 ### MySQL (desde host)
 ```
@@ -169,12 +183,17 @@ mysql -h localhost -P 3307 -u patients -ppatients123 patients_db
 mysql -h localhost -P 3307 -u payments -ppayments123 payments_db
 ```
 
+**BD clinical_records_db**:
+```sql
+mysql -h localhost -P 3307 -u clinical_records -pclinical123 clinical_records_db
+```
+
 ## Estado Actual
 
 ✅ **MySQL 8.0**
 - Puerto: 3307 (host) → 3306 (contenedor)
-- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`
-- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`
+- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`, `clinical_records_db`
+- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`, `clinical_records`
 - Estado: **Healthy** ✓
 
 ✅ **Doctor Service**
@@ -205,11 +224,18 @@ mysql -h localhost -P 3307 -u payments -ppayments123 payments_db
 - BD: `patients_db`
 - Estado: **Ejecutándose** ✓
 
-✅ **Payment Service** (NUEVO)
+✅ **Payment Service**
 - Puerto: 8084
 - Java: 21.0.11
 - Perfil: `mysql`
 - BD: `payments_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Clinical Record Service** (NUEVO)
+- Puerto: 8088
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `clinical_records_db`
 - Estado: **Pendiente de construir**
 
 ## Solución de Problemas
@@ -236,14 +262,17 @@ CREATE DATABASE IF NOT EXISTS agenda_db;
 CREATE DATABASE IF NOT EXISTS appointment_db;
 CREATE DATABASE IF NOT EXISTS patients_db;
 CREATE DATABASE IF NOT EXISTS payments_db;
+CREATE DATABASE IF NOT EXISTS clinical_records_db;
 CREATE USER IF NOT EXISTS 'agenda'@'%' IDENTIFIED BY 'agenda123';
 CREATE USER IF NOT EXISTS 'appointment'@'%' IDENTIFIED BY 'appointment123';
 CREATE USER IF NOT EXISTS 'patients'@'%' IDENTIFIED BY 'patients123';
 CREATE USER IF NOT EXISTS 'payments'@'%' IDENTIFIED BY 'payments123';
+CREATE USER IF NOT EXISTS 'clinical_records'@'%' IDENTIFIED BY 'clinical123';
 GRANT ALL PRIVILEGES ON agenda_db.* TO 'agenda'@'%';
 GRANT ALL PRIVILEGES ON appointment_db.* TO 'appointment'@'%';
 GRANT ALL PRIVILEGES ON patients_db.* TO 'patients'@'%';
 GRANT ALL PRIVILEGES ON payments_db.* TO 'payments'@'%';
+GRANT ALL PRIVILEGES ON clinical_records_db.* TO 'clinical_records'@'%';
 FLUSH PRIVILEGES;
 "
 ```
