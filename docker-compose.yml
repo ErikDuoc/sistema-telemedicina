@@ -1,0 +1,48 @@
+version: '3.8'
+
+# Docker Compose para desarrollo: levanta MySQL y el servicio doctor
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: doctors-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: doctors_db
+      MYSQL_USER: doctors
+      MYSQL_PASSWORD: doctors123
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3306", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  doctor:
+    build:
+      context: ./doctor-service
+      dockerfile: Dockerfile
+    image: doctor-service:latest
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/doctors_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: doctors
+      SPRING_DATASOURCE_PASSWORD: doctors123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  mysql_data:
+
+networks:
+  default:
+    driver: bridge
+
