@@ -32,3 +32,9 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
+server:
+  port: 8091
+
+# Feign client base URL (default for local development)
+appointment-service:
+  url: http://localhost:8087

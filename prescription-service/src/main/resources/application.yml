@@ -32,3 +32,9 @@ springdoc:
     enabled: true
   swagger-ui:
     enabled: true
+server:
+  port: 8089
+
+# Feign client base URLs (defaults for local development)
+clinical-record-service:
+  url: http://localhost:8088

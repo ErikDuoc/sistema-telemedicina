@@ -81,6 +81,13 @@
             <artifactId>flyway-core</artifactId>
         </dependency>
 
+        <!-- FLYWAY MYSQL (necesario para MySQL 8.0+) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>10.11.0</version>
+        </dependency>
+
         <!-- DEVTOOLS -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

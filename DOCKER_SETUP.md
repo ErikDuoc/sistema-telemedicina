@@ -1,0 +1,588 @@
+# Docker Setup - Microservicios
+
+Este documento explica cómo ejecutar los microservicios con Docker Compose.
+
+## Archivos Generados
+
+Se han creado los siguientes archivos para la integración con Docker:
+
+### Por Microservicio
+
+#### doctor-service
+- **`doctor-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`doctor-service/.dockerignore`**: Excluye archivos innecesarios
+
+#### agenda-service
+- **`agenda-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`agenda-service/.dockerignore`**: Excluye archivos innecesarios
+- **`agenda-service/src/main/resources/application-mysql.yml`**: Configuración MySQL para la BD `agenda_db`
+- **`agenda-service/pom.xml`**: Añadida dependencia `flyway-mysql` (v10.11.0)
+
+#### appointment-service
+- **`appointment-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`appointment-service/.dockerignore`**: Excluye archivos innecesarios
+- **`appointment-service/src/main/resources/application-mysql.yml`**: Configuración MySQL para la BD `appointment_db`
+- **`appointment-service/src/main/java/.../client/*Client.java`**: URLs de Feign clients externalizadas via properties
+
+#### patient-service
+- **`patient-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`patient-service/.dockerignore`**: Excluye archivos innecesarios
+- **`patient-service/src/main/resources/application-mysql.yml`**: Configuración MySQL actualizada para la BD `patients_db` con usuario dedicado
+- **`patient-service/pom.xml`**: Añadida dependencia `flyway-mysql` (v10.11.0)
+
+#### payment-service
+- **`payment-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`payment-service/.dockerignore`**: Excluye archivos innecesarios
+- **`payment-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `payments_db` con usuario dedicado
+
+#### clinical-record-service
+- **`clinical-record-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`clinical-record-service/.dockerignore`**: Excluye archivos innecesarios
+- **`clinical-record-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `clinical_records_db` con usuario dedicado
+- **`clinical-record-service/src/main/java/.../client/AppointmentClient.java`**: URL de Feign client externalizada via properties
+
+#### notification-service
+- **`notification-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`notification-service/.dockerignore`**: Excluye archivos innecesarios
+- **`notification-service/src/main/resources/application-mysql.yml`**: Configuración MySQL reescrita para la BD `notifications_db` con usuario dedicado
+
+#### prescription-service
+- **`prescription-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`prescription-service/.dockerignore`**: Excluye archivos innecesarios
+- **`prescription-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `prescriptions_db` con usuario dedicado
+- **`prescription-service/src/main/java/.../client/ClinicalRecordClient.java`**: URL de Feign client externalizada via properties
+- **`prescription-service/src/main/java/.../client/PharmacyClient.java`**: URL de Feign client externalizada via properties
+
+#### video-consultation-service
+- **`video-consultation-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`video-consultation-service/.dockerignore`**: Excluye archivos innecesarios
+- **`video-consultation-service/src/main/resources/application-mysql.yml`**: Configuración MySQL creada para la BD `video_consultations_db` con usuario dedicado
+- **`video-consultation-service/src/main/java/.../client/AppointmentClient.java`**: URL de Feign client externalizada via properties
+
+#### laboratory-service (NUEVO)
+- **`laboratory-service/Dockerfile`**: Multi-stage Dockerfile (Maven + Temurin 21)
+- **`laboratory-service/.dockerignore`**: Excluye archivos innecesarios
+- **`laboratory-service/src/main/resources/application-mysql.yml`**: Configuración MySQL reescrita para la BD `lab_db` con usuario dedicado, JPA y driver config
+
+### Nivel de Raíz
+
+- **`docker-compose.yml`**: Orquestación de MySQL, doctor-service, agenda-service, appointment-service, patient-service, payment-service, clinical-record-service, notification-service, prescription-service, video-consultation-service y laboratory-service
+- **`init-db.sql`**: Script SQL para crear BDs y usuarios
+
+## Configuración de Base de Datos
+
+La setup actual crea **diez bases de datos separadas**:
+
+| Servicio | BD | Usuario | Contraseña | Puerto (host) |
+|----------|----|---------| -----------|---------------|
+| doctor-service | `doctors_db` | `doctors` | `doctors123` | 3307 |
+| agenda-service | `agenda_db` | `agenda` | `agenda123` | 3307 |
+| appointment-service | `appointment_db` | `appointment` | `appointment123` | 3307 |
+| patient-service | `patients_db` | `patients` | `patients123` | 3307 |
+| payment-service | `payments_db` | `payments` | `payments123` | 3307 |
+| clinical-record-service | `clinical_records_db` | `clinical_records` | `clinical123` | 3307 |
+| notification-service | `notifications_db` | `notifications` | `notifications123` | 3307 |
+| prescription-service | `prescriptions_db` | `prescriptions` | `prescriptions123` | 3307 |
+| video-consultation-service | `video_consultations_db` | `video_consultations` | `video_consultations123` | 3307 |
+| laboratory-service | `lab_db` | `lab` | `lab123` | 3307 |
+
+El script `init-db.sql` se ejecuta automáticamente al inicializar MySQL en la sección `/docker-entrypoint-initdb.d/` del volumen.
+
+## Arquitectura de Build
+
+### Dockerfile Multi-stage (ambos microservicios)
+```
+Fase 1 (Build):
+  - Imagen: maven:3.9-eclipse-temurin-21
+  - Copia pom.xml, descarga dependencias
+  - Compila código y empaqueta JAR
+  
+Fase 2 (Runtime):
+  - Imagen: eclipse-temurin:21-jre-jammy (ligera)
+  - Copia JAR compilado (comodín *.jar)
+  - Usuario no-root por seguridad
+   - Expone puerto 8082 (doctor), 8085 (agenda), 8087 (appointment), 8081 (patient), 8084 (payment), 8088 (clinical-record), 8083 (notification), 8089 (prescription), 8091 (video-consultation) o 8086 (laboratory)
+```
+
+## Comandos Rápidos
+
+### Levantar todos los servicios (con build)
+```powershell
+cd 'E:\Estudio DUOC\Semestre 3\sistema-telemedicina'
+docker-compose up --build
+```
+
+### Levantar en background
+```powershell
+docker-compose up -d
+```
+
+### Detener servicios
+```powershell
+docker-compose down
+```
+
+### Ver logs
+```powershell
+# Ver todos los logs
+docker-compose logs
+
+# Ver logs en tiempo real
+docker-compose logs -f
+
+# Ver logs de un servicio específico
+docker-compose logs doctor
+docker-compose logs agenda
+docker-compose logs appointment
+docker-compose logs patient
+docker-compose logs payment
+docker-compose logs clinical-record
+docker-compose logs notification
+docker-compose logs prescription
+docker-compose logs video-consultation
+docker-compose logs laboratory
+docker-compose logs mysql
+```
+
+### Reconstruir una imagen específica
+```powershell
+docker-compose build --no-cache doctor
+docker-compose build --no-cache agenda
+docker-compose build --no-cache appointment
+docker-compose build --no-cache patient
+docker-compose build --no-cache payment
+docker-compose build --no-cache clinical-record
+docker-compose build --no-cache notification
+docker-compose build --no-cache prescription
+docker-compose build --no-cache video-consultation
+docker-compose build --no-cache laboratory
+```
+
+## Acceso a los Servicios
+
+### Doctor Service
+- **API REST**: http://localhost:8082/doctorservice/api/doctors
+- **Swagger UI**: http://localhost:8082/doctorservice/swagger-ui.html
+
+### Agenda Service
+- **API REST**: http://localhost:8085/agendaservice/api/...
+- **Swagger UI**: http://localhost:8085/agendaservice/swagger-ui.html
+
+### Appointment Service
+- **API REST**: http://localhost:8087/api/appointments
+- **Swagger UI**: http://localhost:8087/doc/swagger-ui/index.html
+
+### Patient Service
+- **API REST**: http://localhost:8081/api/patients
+- **Swagger UI**: http://localhost:8081/swagger-ui/index.html
+- **H2 Console**: http://localhost:8081/h2-console
+
+### Payment Service
+- **API REST**: http://localhost:8084/api/payments
+- **Swagger UI**: http://localhost:8084/swagger-ui/index.html
+- **H2 Console**: http://localhost:8084/h2-console
+
+### Clinical Record Service
+- **API REST**: http://localhost:8088/api/clinical-records
+- **Swagger UI**: http://localhost:8088/swagger-ui/index.html
+- **H2 Console**: http://localhost:8088/h2-console
+
+### Notification Service
+- **API REST**: http://localhost:8083/api/notifications
+- **Swagger UI**: http://localhost:8083/swagger-ui/index.html
+- **H2 Console**: http://localhost:8083/h2-console
+
+### Prescription Service
+- **API REST**: http://localhost:8089/api/prescriptions
+- **Swagger UI**: http://localhost:8089/swagger-ui/index.html
+- **H2 Console**: http://localhost:8089/h2-console
+
+### Video Consultation Service
+- **API REST**: http://localhost:8091/api/video-consultations
+- **Swagger UI**: http://localhost:8091/swagger-ui/index.html
+- **H2 Console**: http://localhost:8091/h2-console
+
+### Laboratory Service (NUEVO)
+- **API REST**: http://localhost:8086/api/lab
+- **Swagger UI**: http://localhost:8086/swagger-ui/index.html
+- **H2 Console**: http://localhost:8086/h2-console
+
+### MySQL (desde host)
+```
+Host: localhost
+Puerto: 3307
+```
+
+**BD doctors_db**:
+```sql
+mysql -h localhost -P 3307 -u doctors -pdoctors123 doctors_db
+```
+
+**BD agenda_db**:
+```sql
+mysql -h localhost -P 3307 -u agenda -pagenda123 agenda_db
+```
+
+**BD appointment_db**:
+```sql
+mysql -h localhost -P 3307 -u appointment -pagenda123 appointment_db
+```
+
+**BD patients_db**:
+```sql
+mysql -h localhost -P 3307 -u patients -ppatients123 patients_db
+```
+
+**BD payments_db**:
+```sql
+mysql -h localhost -P 3307 -u payments -ppayments123 payments_db
+```
+
+**BD clinical_records_db**:
+```sql
+mysql -h localhost -P 3307 -u clinical_records -pclinical123 clinical_records_db
+```
+
+**BD notifications_db**:
+```sql
+mysql -h localhost -P 3307 -u notifications -pnotifications123 notifications_db
+```
+
+**BD prescriptions_db**:
+```sql
+mysql -h localhost -P 3307 -u prescriptions -pprescriptions123 prescriptions_db
+```
+
+**BD video_consultations_db**:
+```sql
+mysql -h localhost -P 3307 -u video_consultations -pvideo_consultations123 video_consultations_db
+```
+
+**BD lab_db**:
+```sql
+mysql -h localhost -P 3307 -u lab -plab123 lab_db
+```
+
+## Estado Actual
+
+✅ **MySQL 8.0**
+- Puerto: 3307 (host) → 3306 (contenedor)
+- BDs: `doctors_db`, `agenda_db`, `appointment_db`, `patients_db`, `payments_db`, `clinical_records_db`, `notifications_db`, `prescriptions_db`, `video_consultations_db`, `lab_db`
+- Usuarios: `doctors`, `agenda`, `appointment`, `patients`, `payments`, `clinical_records`, `notifications`, `prescriptions`, `video_consultations`, `lab`
+- Estado: **Healthy** ✓
+
+✅ **Doctor Service**
+- Puerto: 8082
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `doctors_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Agenda Service**
+- Puerto: 8085
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `agenda_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Appointment Service**
+- Puerto: 8087
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `appointment_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Patient Service**
+- Puerto: 8081
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `patients_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Payment Service**
+- Puerto: 8084
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `payments_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Clinical Record Service**
+- Puerto: 8088
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `clinical_records_db`
+- Estado: **Ejecutándose** ✓
+
+✅ **Notification Service**
+- Puerto: 8083
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `notifications_db`
+- Estado: **Pendiente de construir**
+
+✅ **Prescription Service**
+- Puerto: 8089
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `prescriptions_db`
+- Estado: **Pendiente de construir**
+
+✅ **Video Consultation Service**
+- Puerto: 8091
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `video_consultations_db`
+- Estado: **Pendiente de construir**
+
+✅ **Laboratory Service** (NUEVO)
+- Puerto: 8086
+- Java: 21.0.11
+- Perfil: `mysql`
+- BD: `lab_db`
+- Estado: **Pendiente de construir**
+
+## Solución de Problemas
+
+### Error: "Unsupported Database: MySQL 8.0"
+**Causa**: Falta la dependencia `flyway-mysql` en el pom.xml
+**Solución**: Asegurar que `pom.xml` incluye:
+```xml
+<dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-mysql</artifactId>
+    <version>10.11.0</version>
+</dependency>
+```
+
+### Error: "Access denied for user"
+**Causa**: El script `init-db.sql` no se ejecutó correctamente
+**Solución**:
+1. Verificar que `init-db.sql` está en la raíz
+2. Ejecutar manualmente en el contenedor MySQL:
+```powershell
+docker-compose exec mysql mysql -uroot -proot123 -e "
+CREATE DATABASE IF NOT EXISTS agenda_db;
+CREATE DATABASE IF NOT EXISTS appointment_db;
+CREATE DATABASE IF NOT EXISTS patients_db;
+CREATE DATABASE IF NOT EXISTS payments_db;
+CREATE DATABASE IF NOT EXISTS clinical_records_db;
+CREATE DATABASE IF NOT EXISTS notifications_db;
+CREATE DATABASE IF NOT EXISTS prescriptions_db;
+CREATE DATABASE IF NOT EXISTS video_consultations_db;
+CREATE DATABASE IF NOT EXISTS lab_db;
+CREATE USER IF NOT EXISTS 'agenda'@'%' IDENTIFIED BY 'agenda123';
+CREATE USER IF NOT EXISTS 'appointment'@'%' IDENTIFIED BY 'appointment123';
+CREATE USER IF NOT EXISTS 'patients'@'%' IDENTIFIED BY 'patients123';
+CREATE USER IF NOT EXISTS 'payments'@'%' IDENTIFIED BY 'payments123';
+CREATE USER IF NOT EXISTS 'clinical_records'@'%' IDENTIFIED BY 'clinical123';
+CREATE USER IF NOT EXISTS 'notifications'@'%' IDENTIFIED BY 'notifications123';
+CREATE USER IF NOT EXISTS 'prescriptions'@'%' IDENTIFIED BY 'prescriptions123';
+CREATE USER IF NOT EXISTS 'video_consultations'@'%' IDENTIFIED BY 'video_consultations123';
+CREATE USER IF NOT EXISTS 'lab'@'%' IDENTIFIED BY 'lab123';
+GRANT ALL PRIVILEGES ON agenda_db.* TO 'agenda'@'%';
+GRANT ALL PRIVILEGES ON appointment_db.* TO 'appointment'@'%';
+GRANT ALL PRIVILEGES ON patients_db.* TO 'patients'@'%';
+GRANT ALL PRIVILEGES ON payments_db.* TO 'payments'@'%';
+GRANT ALL PRIVILEGES ON clinical_records_db.* TO 'clinical_records'@'%';
+GRANT ALL PRIVILEGES ON notifications_db.* TO 'notifications'@'%';
+GRANT ALL PRIVILEGES ON prescriptions_db.* TO 'prescriptions'@'%';
+GRANT ALL PRIVILEGES ON video_consultations_db.* TO 'video_consultations'@'%';
+GRANT ALL PRIVILEGES ON lab_db.* TO 'lab'@'%';
+FLUSH PRIVILEGES;
+"
+```
+
+### Error: "Connection refused"
+**Causa**: URL de conexión usa puerto incorrecto
+**Solución**: En Docker, usar `mysql:3306` (puerto interno), no `localhost:3307`
+
+## Configuración Avanzada
+
+### Variables de Entorno (docker-compose.yml)
+```yaml
+SPRING_PROFILES_ACTIVE: mysql          # Perfil de Spring
+JAVA_OPTS: "-Xms512m -Xmx1g"          # Opciones JVM
+SPRING_DATASOURCE_URL: jdbc:mysql://...  # URL de BD interna
+SPRING_DATASOURCE_USERNAME: ...        # Usuario
+SPRING_DATASOURCE_PASSWORD: ...        # Contraseña
+```
+
+### Cambiar Credenciales de BD
+Editar en `docker-compose.yml` y `init-db.sql`, luego ejecutar:
+```powershell
+docker-compose down
+docker volume rm sistema-telemedicina_mysql_data
+docker-compose up --build
+```
+
+## Notas
+
+- Las migraciones de Flyway están deshabilitadas (no hay archivos V*.sql)
+- Hibernate maneja la creación de esquemas automáticamente (`ddl-auto: update`)
+- Cada microservicio tiene su propia BD para evitar acoplamiento
+- El archivo `docker-compose.yml` es el entry point; el script `init-db.sql` se ejecuta automáticamente
+
+
+
+## Archivos Generados
+
+Se han creado los siguientes archivos para la integración con Docker:
+
+### 1. **`doctor-service/Dockerfile`**
+Dockerfile multi-stage optimizado:
+- **Fase Build**: Usa `maven:3.9-eclipse-temurin-21` para compilar el código
+  - Copia `pom.xml` y descarga dependencias (aprovecha caché)
+  - Compila el código fuente y genera el JAR
+- **Fase Runtime**: Usa `eclipse-temurin:21-jre-jammy` (imagen ligera)
+  - Copia el JAR generado
+  - Ejecuta con usuario no-root por seguridad
+
+### 2. **`doctor-service/.dockerignore`**
+Archivo que excluye del contexto de build:
+- `target/` (artefactos compilados)
+- `.git/`, `.idea/`, `*.iml` (archivos IDE)
+- `logs/` (archivos de log)
+
+### 3. **`docker-compose.yml`** (en la raíz del repositorio)
+Orquestación de servicios:
+
+#### Servicio MySQL
+- **Imagen**: `mysql:8.0`
+- **Puerto**: `3307:3306` (host:contenedor)
+- **BD**: `doctors_db`
+- **Usuario**: `doctors` / **Contraseña**: `doctors123`
+- **Volumen**: `mysql_data:/var/lib/mysql` (persistencia)
+- **Healthcheck**: Verifica que MySQL está listo
+
+#### Servicio Doctor
+- **Imagen**: `doctor-service:latest` (construida localmente)
+- **Puerto**: `8082:8082` (host:contenedor)
+- **Perfil**: `mysql`
+- **Variables de entorno**:
+  - `SPRING_DATASOURCE_URL`: `jdbc:mysql://mysql:3306/doctors_db...`
+  - `SPRING_DATASOURCE_USERNAME`: `doctors`
+  - `SPRING_DATASOURCE_PASSWORD`: `doctors123`
+  - `JAVA_OPTS`: `-Xms512m -Xmx1g`
+- **Depende de**: MySQL (espera a que esté healthy)
+
+## Requisitos Previos
+
+- Docker Desktop instalado y corriendo
+- Docker Compose (incluido en Docker Desktop)
+- 2GB de RAM disponible mínimo
+
+## Comandos Útiles
+
+### Levantar los servicios (primero construye la imagen)
+```powershell
+cd 'E:\Estudio DUOC\Semestre 3\sistema-telemedicina'
+docker-compose up --build
+```
+
+### Levantar los servicios en background
+```powershell
+docker-compose up -d
+```
+
+### Detener los servicios
+```powershell
+docker-compose down
+```
+
+### Ver logs del servicio doctor
+```powershell
+docker-compose logs doctor
+```
+
+### Ver logs en tiempo real
+```powershell
+docker-compose logs -f doctor
+```
+
+### Verificar estado de los servicios
+```powershell
+docker-compose ps
+```
+
+## Acceso a los Servicios
+
+### API REST (doctor-service)
+```
+http://localhost:8082/doctorservice/api/doctors
+```
+
+### Swagger UI
+```
+http://localhost:8082/doctorservice/swagger-ui.html
+```
+
+### H2 Console (solo para perfil h2)
+```
+http://localhost:8082/doctorservice/h2-console
+```
+
+### MySQL (desde host)
+```
+Host: localhost
+Puerto: 3307
+Usuario: doctors
+Contraseña: doctors123
+BD: doctors_db
+```
+
+## Solución de Problemas
+
+### Error: "error: release version 21 not supported"
+**Causa**: El Dockerfile estaba usando Java 17 en lugar de Java 21
+**Solución**: Se ha actualizado a `maven:3.9-eclipse-temurin-21` y `eclipse-temurin:21-jre-jammy`
+
+### Error: "Communications link failure" en la BD
+**Causa**: La URL de conexión usaba puerto incorrecto (3307 en lugar de 3306 dentro del contenedor)
+**Solución**: Se cambió en docker-compose.yml a `jdbc:mysql://mysql:3306/doctors_db...`
+
+### Error: "Cannot connect to port 8080"
+**Causa**: El servicio estaba configurado en puerto 8082, no 8080
+**Solución**: Se actualizó docker-compose.yml para mapear `8082:8082`
+
+## Configuración Adicional
+
+### Para cambiar credenciales de MySQL
+Edita `docker-compose.yml` en la sección del servicio `mysql`:
+```yaml
+environment:
+  MYSQL_DATABASE: doctors_db
+  MYSQL_USER: doctors
+  MYSQL_PASSWORD: doctors123
+  MYSQL_ROOT_PASSWORD: root123
+```
+
+También actualiza las variables en el servicio `doctor`:
+```yaml
+SPRING_DATASOURCE_USERNAME: doctors
+SPRING_DATASOURCE_PASSWORD: doctors123
+```
+
+### Para cambiar memoria JVM
+Edita en `docker-compose.yml`:
+```yaml
+JAVA_OPTS: "-Xms512m -Xmx1g"
+```
+
+## Notas de Desarrollo
+
+- Las migraciones de Flyway están deshabilitadas (no hay archivos V*.sql)
+- Se crea automáticamente la estructura BD via Hibernate (`ddl-auto: update`)
+- Los datos iniciales se cargan via `DataInitializer.java`
+- El servicio usa perfil `mysql` (ver `application-mysql.yml`)
+
+## Características de Producción Consideradas
+
+✅ Multi-stage build para imagen mínima
+✅ Usuario no-root en la imagen
+✅ Healthcheck para MySQL
+✅ Restart policies configuradas
+✅ Variables de entorno configurables
+✅ Volumen persistente para BD
+✅ Red bridge explícita entre servicios
+
+

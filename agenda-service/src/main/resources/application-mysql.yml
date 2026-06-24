@@ -1,2 +1,19 @@
 server:
   port: 8085
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/agenda_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+    username: agenda
+    password: agenda123
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+doctor-service:
+  url: http://localhost:8082
+

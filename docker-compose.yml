@@ -1,0 +1,208 @@
+version: '3.8'
+
+# Docker Compose para desarrollo: levanta MySQL y los microservicios (doctor, agenda)
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: sistema-telemedicina-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-P", "3306", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  doctor:
+    build:
+      context: ./doctor-service
+      dockerfile: Dockerfile
+    image: doctor-service:latest
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/doctors_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: doctors
+      SPRING_DATASOURCE_PASSWORD: doctors123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  agenda:
+    build:
+      context: ./agenda-service
+      dockerfile: Dockerfile
+    image: agenda-service:latest
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/agenda_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: agenda
+      SPRING_DATASOURCE_PASSWORD: agenda123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  appointment:
+    build:
+      context: ./appointment-service
+      dockerfile: Dockerfile
+    image: appointment-service:latest
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appointment_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: appointment
+      SPRING_DATASOURCE_PASSWORD: appointment123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  patient:
+    build:
+      context: ./patient-service
+      dockerfile: Dockerfile
+    image: patient-service:latest
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/patients_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: patients
+      SPRING_DATASOURCE_PASSWORD: patients123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  payment:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    image: payment-service:latest
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/payments_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: payments
+      SPRING_DATASOURCE_PASSWORD: payments123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  clinical-record:
+    build:
+      context: ./clinical-record-service
+      dockerfile: Dockerfile
+    image: clinical-record-service:latest
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/clinical_records_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: clinical_records
+      SPRING_DATASOURCE_PASSWORD: clinical123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  notification:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    image: notification-service:latest
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notifications_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: notifications
+      SPRING_DATASOURCE_PASSWORD: notifications123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  prescription:
+    build:
+      context: ./prescription-service
+      dockerfile: Dockerfile
+    image: prescription-service:latest
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/prescriptions_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: prescriptions
+      SPRING_DATASOURCE_PASSWORD: prescriptions123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  video-consultation:
+    build:
+      context: ./video-consultation-service
+      dockerfile: Dockerfile
+    image: video-consultation-service:latest
+    ports:
+      - "8091:8091"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/video_consultations_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: video_consultations
+      SPRING_DATASOURCE_PASSWORD: video_consultations123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+  laboratory:
+    build:
+      context: ./laboratory-service
+      dockerfile: Dockerfile
+    image: laboratory-service:latest
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      JAVA_OPTS: "-Xms512m -Xmx1g"
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/lab_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: lab
+      SPRING_DATASOURCE_PASSWORD: lab123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  mysql_data:
+
+networks:
+  default:
+    driver: bridge
+

@@ -27,6 +27,17 @@ server:
     context-path: /appointmentservice
 
 ## Swagger / OpenAPI
+# Feign client base URLs (defaults for local development)
+doctor-service:
+  url: http://localhost:8082
+
+agenda-service:
+  url: http://localhost:8085
+
+patient-service:
+  url: http://localhost:8081
+
+# Swagger
 springdoc:
   api-docs:
     enabled: true
