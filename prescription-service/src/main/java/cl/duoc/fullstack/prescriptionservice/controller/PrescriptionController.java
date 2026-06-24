@@ -2,13 +2,19 @@ package cl.duoc.fullstack.prescriptionservice.controller;
 
 import cl.duoc.fullstack.prescriptionservice.dto.*;
 import cl.duoc.fullstack.prescriptionservice.service.PrescriptionService;
+import cl.duoc.fullstack.prescriptionservice.service.PrescriptionLinkAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Tag(name = "Recetas Médicas", description = "Operaciones para gestionar recetas médicas")
 @RestController
@@ -17,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class PrescriptionController {
 
     private final PrescriptionService service;
+    private final PrescriptionLinkAssembler prescriptionLinkAssembler;
 
     @Operation(summary = "Crear receta médica", description = "Crea una nueva receta médica asociada a una ficha clínica")
     @ApiResponses(value = {
@@ -28,13 +35,13 @@ public class PrescriptionController {
         return service.create(request);
     }
 
-    @Operation(summary = "Obtener receta por ID", description = "Obtiene una receta médica específica por su identificador")
+    @Operation(summary = "Obtener receta por ID", description = "Obtiene una receta médica específica por su identificador con enlaces HATEOAS en _links")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Receta encontrada"),
             @ApiResponse(responseCode = "404", description = "Receta no encontrada")
     })
     @GetMapping("/{id}")
-    public PrescriptionResponseDTO getById(@PathVariable Long id){
-        return service.getById(id);
+    public ResponseEntity<EntityModel<PrescriptionResponseDTO>> getById(@PathVariable Long id){
+        return ResponseEntity.ok(prescriptionLinkAssembler.toModel(service.getById(id)));
     }
 }

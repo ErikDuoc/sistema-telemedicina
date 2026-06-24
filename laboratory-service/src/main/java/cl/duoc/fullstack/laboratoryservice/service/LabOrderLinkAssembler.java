@@ -1,6 +1,6 @@
 package cl.duoc.fullstack.laboratoryservice.service;
 
-import cl.duoc.fullstack.laboratoryservice.controller.LabOrderController;
+import cl.duoc.fullstack.laboratoryservice.controller.LaboratoryController;
 import cl.duoc.fullstack.laboratoryservice.dto.LabOrderResponseDTO;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.stereotype.Component;
@@ -14,11 +14,8 @@ public class LabOrderLinkAssembler {
     public EntityModel<LabOrderResponseDTO> toModel(LabOrderResponseDTO labOrder) {
         EntityModel<LabOrderResponseDTO> model = EntityModel.of(labOrder);
 
-        model.add(linkTo(methodOn(LabOrderController.class)
-                .getById(labOrder.getId())).withSelfRel());
-
-        model.add(linkTo(methodOn(LabOrderController.class)
-                .getAll()).withRel("all"));
+        model.add(linkTo(methodOn(LaboratoryController.class)
+                .getPatientOrders(labOrder.getPatientId())).withSelfRel());
 
         return model;
     }

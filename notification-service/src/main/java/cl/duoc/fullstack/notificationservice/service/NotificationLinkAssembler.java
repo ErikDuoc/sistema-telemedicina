@@ -15,10 +15,7 @@ public class NotificationLinkAssembler {
         EntityModel<NotificationResponseDTO> model = EntityModel.of(notification);
 
         model.add(linkTo(methodOn(NotificationController.class)
-                .getById(notification.getId())).withSelfRel());
-
-        model.add(linkTo(methodOn(NotificationController.class)
-                .getAll()).withRel("all"));
+                .getNotificationHistory(notification.getUserId())).withSelfRel());
 
         return model;
     }

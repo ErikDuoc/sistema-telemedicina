@@ -17,9 +17,6 @@ public class ClinicalRecordLinkAssembler {
         model.add(linkTo(methodOn(ClinicalRecordController.class)
                 .getById(record.getId())).withSelfRel());
 
-        model.add(linkTo(methodOn(ClinicalRecordController.class)
-                .getAll()).withRel("all"));
-
         return model;
     }
 }

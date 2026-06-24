@@ -17,9 +17,6 @@ public class VideoConsultationLinkAssembler {
         model.add(linkTo(methodOn(VideoConsultationController.class)
                 .getById(consultation.getId())).withSelfRel());
 
-        model.add(linkTo(methodOn(VideoConsultationController.class)
-                .getAll()).withRel("all"));
-
         return model;
     }
 }

@@ -3,15 +3,22 @@ package cl.duoc.fullstack.appointmentservice.controller;
 import cl.duoc.fullstack.appointmentservice.dto.*;
 import cl.duoc.fullstack.appointmentservice.model.Appointment;
 import cl.duoc.fullstack.appointmentservice.service.AppointmentService;
+import cl.duoc.fullstack.appointmentservice.service.AppointmentLinkAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Tag(name = "Citas Médicas", description = "Operaciones para gestionar citas médicas")
 @RestController
@@ -20,6 +27,7 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService service;
+    private final AppointmentLinkAssembler appointmentLinkAssembler;
 
     @Operation(summary = "Crear cita médica", description = "Crea una nueva cita médica entre un paciente y un médico")
     @ApiResponses(value = {
@@ -31,11 +39,27 @@ public class AppointmentController {
         return service.create(request);
     }
 
-    @Operation(summary = "Obtener citas del paciente", description = "Obtiene todas las citas médicas de un paciente específico")
+    @Operation(summary = "Obtener citas del paciente", description = "Obtiene todas las citas médicas de un paciente específico con enlaces HATEOAS en _links")
     @ApiResponse(responseCode = "200", description = "Citas obtenidas exitosamente")
     @GetMapping("/patient/{id}")
-    public List<Appointment> getByPatient(@PathVariable Long id){
-        return service.getByPatient(id);
+    public ResponseEntity<CollectionModel<EntityModel<AppointmentResponseDTO>>> getByPatient(@PathVariable Long id){
+        List<EntityModel<AppointmentResponseDTO>> appointments = service.getByPatient(id).stream()
+                .map(apt -> appointmentLinkAssembler.toModel(
+                    AppointmentResponseDTO.builder()
+                        .id(apt.getId())
+                        .patientId(apt.getPatientId())
+                        .doctorId(apt.getDoctorId())
+                        .date(apt.getDate())
+                        .time(apt.getTime())
+                        .status(apt.getStatus())
+                        .build()
+                ))
+                .toList();
+
+        CollectionModel<EntityModel<AppointmentResponseDTO>> collection = CollectionModel.of(appointments);
+        collection.add(linkTo(methodOn(AppointmentController.class).getByPatient(id)).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
     @Operation(summary = "Actualizar estado de cita", description = "Cambia el estado de una cita médica (confirmada, cancelada, etc.)")
