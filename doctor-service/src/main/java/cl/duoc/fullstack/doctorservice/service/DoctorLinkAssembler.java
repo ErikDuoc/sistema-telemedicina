@@ -20,9 +20,6 @@ public class DoctorLinkAssembler {
         model.add(linkTo(methodOn(DoctorController.class)
                 .getAllDoctors()).withRel("all"));
 
-        model.add(linkTo(methodOn(DoctorController.class)
-                .updateDoctor(doctor.getId(), null)).withRel("update"));
-
         return model;
     }
 }
