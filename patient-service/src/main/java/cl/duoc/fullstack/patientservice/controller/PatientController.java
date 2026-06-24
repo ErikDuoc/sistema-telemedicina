@@ -2,6 +2,7 @@ package cl.duoc.fullstack.patientservice.controller;
 
 import cl.duoc.fullstack.patientservice.dto.PatientRequestDTO;
 import cl.duoc.fullstack.patientservice.dto.PatientResponseDTO;
+import cl.duoc.fullstack.patientservice.service.PatientLinkAssembler;
 import cl.duoc.fullstack.patientservice.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,11 +12,16 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Tag(name = "Pacientes", description = "Operaciones para gestionar pacientes")
 @RestController
@@ -25,23 +31,32 @@ public class PatientController {
 
     private static final Logger logger = LoggerFactory.getLogger(PatientController.class);
     private final PatientService patientService;
+    private final PatientLinkAssembler patientLinkAssembler;
 
-    @Operation(summary = "Obtener todos los pacientes", description = "Retorna una lista con todos los pacientes registrados en el sistema")
+    @Operation(summary = "Obtener todos los pacientes", description = "Retorna una lista con todos los pacientes registrados en el sistema con enlaces HATEOAS en _links")
     @ApiResponse(responseCode = "200", description = "Lista de pacientes obtenida exitosamente")
     @GetMapping
-    public ResponseEntity<List<PatientResponseDTO>> findAll() {
-        return ResponseEntity.ok(patientService.findAll());
+    public ResponseEntity<CollectionModel<EntityModel<PatientResponseDTO>>> findAll() {
+        List<EntityModel<PatientResponseDTO>> patients = patientService.findAll().stream()
+                .map(patientLinkAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<PatientResponseDTO>> collection = CollectionModel.of(patients);
+        collection.add(linkTo(methodOn(PatientController.class).findAll()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
     }
 
-    @Operation(summary = "Obtener paciente por ID", description = "Busca y retorna un paciente específico según su identificador")
+    @Operation(summary = "Obtener paciente por ID", description = "Busca y retorna un paciente específico según su identificador con enlaces HATEOAS en _links")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Paciente encontrado"),
             @ApiResponse(responseCode = "404", description = "Paciente no encontrado")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<PatientResponseDTO> findById(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<PatientResponseDTO>> findById(@PathVariable Long id) {
         logger.info("Buscando paciente con ID: {}", id);
         return patientService.findById(id)
+                .map(patientLinkAssembler::toModel)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> {
                     logger.warn("Paciente no encontrado con ID: {}", id);
