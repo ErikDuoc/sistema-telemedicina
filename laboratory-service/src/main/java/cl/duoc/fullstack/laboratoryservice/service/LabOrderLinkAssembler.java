@@ -17,6 +17,15 @@ public class LabOrderLinkAssembler {
         model.add(linkTo(methodOn(LaboratoryController.class)
                 .getPatientOrders(labOrder.getPatientId())).withSelfRel());
 
+        model.add(linkTo(methodOn(LaboratoryController.class)
+                .getAll()).withRel("all"));
+
+        // Links condicionales según estado de la orden
+        if ("PENDING".equalsIgnoreCase(labOrder.getStatus())) {
+            model.add(linkTo(methodOn(LaboratoryController.class)
+                    .create(null)).withRel("create"));
+        }
+
         return model;
     }
 }

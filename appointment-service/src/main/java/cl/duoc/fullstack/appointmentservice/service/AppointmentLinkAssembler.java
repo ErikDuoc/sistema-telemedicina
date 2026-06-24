@@ -17,9 +17,18 @@ public class AppointmentLinkAssembler {
         model.add(linkTo(methodOn(AppointmentController.class)
                 .getByPatient(appointment.getPatientId())).withSelfRel());
 
-        model.add(linkTo(methodOn(AppointmentController.class)
-                .updateStatus(appointment.getId(), null)).withRel("update-status"));
+        // Links condicionales según estado de la cita
+        if ("OPEN".equalsIgnoreCase(appointment.getStatus())) {
+            model.add(linkTo(methodOn(AppointmentController.class)
+                    .updateStatus(appointment.getId(), null)).withRel("update-status"));
+        }
+
+        if ("CONFIRMED".equalsIgnoreCase(appointment.getStatus())) {
+            model.add(linkTo(methodOn(AppointmentController.class)
+                    .updateStatus(appointment.getId(), "CANCELLED")).withRel("cancel"));
+        }
 
         return model;
     }
 }
+

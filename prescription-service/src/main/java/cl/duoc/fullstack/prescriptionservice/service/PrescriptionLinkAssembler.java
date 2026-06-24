@@ -17,6 +17,17 @@ public class PrescriptionLinkAssembler {
         model.add(linkTo(methodOn(PrescriptionController.class)
                 .getById(prescription.getId())).withSelfRel());
 
+        // Links condicionales: solo permite acciones si la receta fue creada recientemente
+        if (isRecentlyCreated(prescription)) {
+            model.add(linkTo(methodOn(PrescriptionController.class)
+                    .create(null)).withRel("create-similar"));
+        }
+
         return model;
+    }
+
+    private boolean isRecentlyCreated(PrescriptionResponseDTO prescription) {
+        // Simplificado: aquí se verificaría si fue creada hace poco
+        return prescription.getCreatedAt() != null;
     }
 }
