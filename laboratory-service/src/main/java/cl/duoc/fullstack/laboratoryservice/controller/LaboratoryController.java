@@ -1,7 +1,6 @@
 package cl.duoc.fullstack.laboratoryservice.controller;
 
 import cl.duoc.fullstack.laboratoryservice.dto.*;
-import cl.duoc.fullstack.laboratoryservice.model.LabOrder;
 import cl.duoc.fullstack.laboratoryservice.service.LaboratoryService;
 import cl.duoc.fullstack.laboratoryservice.service.LaboratoryLinkAssembler;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,6 +48,7 @@ public class LaboratoryController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos"),
             @ApiResponse(responseCode = "404", description = "Orden no encontrada")
     })
+
     @PutMapping("/results/{orderId}")
     public String uploadResult(
             @PathVariable Long orderId,
@@ -65,14 +65,7 @@ public class LaboratoryController {
     @GetMapping("/patient/{id}")
     public ResponseEntity<CollectionModel<EntityModel<LabOrderResponseDTO>>> getPatientOrders(@PathVariable Long id) {
         List<EntityModel<LabOrderResponseDTO>> orders = laboratoryService.getPatientOrders(id).stream()
-                .map(order -> laboratoryLinkAssembler.toModel(
-                    LabOrderResponseDTO.builder()
-                        .id(order.getId())
-                        .patientId(order.getPatientId())
-                        .testType(order.getTestType())
-                        .status(order.getStatus())
-                        .build()
-                ))
+                .map(laboratoryLinkAssembler::toModel)
                 .toList();
 
         CollectionModel<EntityModel<LabOrderResponseDTO>> collection = CollectionModel.of(orders);

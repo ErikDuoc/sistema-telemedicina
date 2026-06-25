@@ -9,7 +9,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class LabOrderLinkAssembler {
+public class LaboratoryLinkAssembler {
 
     public EntityModel<LabOrderResponseDTO> toModel(LabOrderResponseDTO labOrder) {
         EntityModel<LabOrderResponseDTO> model = EntityModel.of(labOrder);
@@ -18,12 +18,11 @@ public class LabOrderLinkAssembler {
                 .getPatientOrders(labOrder.getPatientId())).withSelfRel());
 
         model.add(linkTo(methodOn(LaboratoryController.class)
-                .getAll()).withRel("all"));
+                .getPatientOrders(labOrder.getPatientId())).withRel("all"));
 
-        // Links condicionales según estado de la orden
-        if ("PENDING".equalsIgnoreCase(labOrder.getStatus())) {
+        if ("PENDIENTE".equalsIgnoreCase(labOrder.getStatus())) {
             model.add(linkTo(methodOn(LaboratoryController.class)
-                    .create(null)).withRel("create"));
+                    .createOrder(null)).withRel("create"));
         }
 
         return model;
