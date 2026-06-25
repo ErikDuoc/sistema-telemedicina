@@ -5,6 +5,7 @@ import cl.duoc.fullstack.paymentservice.dto.PaymentRequestDTO;
 import cl.duoc.fullstack.paymentservice.dto.PaymentResponseDTO;
 import cl.duoc.fullstack.paymentservice.service.PaymentService;
 import cl.duoc.fullstack.paymentservice.service.InsuranceLinkAssembler;
+import cl.duoc.fullstack.paymentservice.service.PaymentLinkAssembler;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -30,6 +31,7 @@ public class PaymentController {
 
     private final PaymentService paymentService;
     private final InsuranceLinkAssembler insuranceLinkAssembler;
+    private final PaymentLinkAssembler paymentLinkAssembler;
 
     @Operation(summary = "Procesar pago", description = "Procesa un pago para una cita médica específica")
     @ApiResponses(value = {
@@ -55,6 +57,32 @@ public class PaymentController {
 
         CollectionModel<EntityModel<InsuranceDTO>> collection = CollectionModel.of(insurances);
         collection.add(linkTo(methodOn(PaymentController.class).getAllInsurances()).withSelfRel());
+
+        return ResponseEntity.ok(collection);
+    }
+
+    @Operation(summary = "Obtener pago por ID", description = "Obtiene los detalles de una transacción de pago específica con enlaces HATEOAS")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Pago encontrado"),
+            @ApiResponse(responseCode = "404", description = "Pago no encontrado")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<EntityModel<PaymentResponseDTO>> getById(@PathVariable Long id) {
+        PaymentResponseDTO payment = paymentService.getById(id);
+        EntityModel<PaymentResponseDTO> model = paymentLinkAssembler.toModel(payment);
+        return ResponseEntity.ok(model);
+    }
+
+    @Operation(summary = "Obtener todos los pagos", description = "Obtiene todas las transacciones de pago registradas con enlaces HATEOAS")
+    @ApiResponse(responseCode = "200", description = "Pagos obtenidos exitosamente")
+    @GetMapping
+    public ResponseEntity<CollectionModel<EntityModel<PaymentResponseDTO>>> getAll() {
+        List<EntityModel<PaymentResponseDTO>> payments = paymentService.getAll().stream()
+                .map(paymentLinkAssembler::toModel)
+                .toList();
+
+        CollectionModel<EntityModel<PaymentResponseDTO>> collection = CollectionModel.of(payments);
+        collection.add(linkTo(methodOn(PaymentController.class).getAll()).withSelfRel());
 
         return ResponseEntity.ok(collection);
     }
