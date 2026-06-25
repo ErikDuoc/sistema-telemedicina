@@ -80,6 +80,23 @@ public class PaymentService {
                 .toList();
     }
 
+    public PaymentResponseDTO getById(Long id) {
+        log.info("Recuperar transacción por ID: {}", id);
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> {
+                    log.warn("Transacción no encontrada: {}", id);
+                    return new RuntimeException("Transacción no encontrada");
+                });
+        return mapToResponse(transaction);
+    }
+
+    public List<PaymentResponseDTO> getAll() {
+        log.info("Recuperar todas las transacciones");
+        return transactionRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private PaymentResponseDTO mapToResponse(Transaction transaction) {
 
         return PaymentResponseDTO.builder()

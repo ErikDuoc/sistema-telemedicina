@@ -140,17 +140,28 @@ public class LaboratoryService {
         }
     }
 
-    public List<LabOrder> getPatientOrders(Long patientId) {
+    public List<LabOrderResponseDTO> getPatientOrders(Long patientId) {
         log.info("Recuperar órdenes de examen para paciente: {}", patientId);
 
-        // Validación: Paciente debe existir
+        PatientResponseDTO patient;
         try {
-            patientClient.getPatient(patientId);
+            patient = patientClient.getPatient(patientId);
         } catch (Exception e) {
             log.warn("Paciente no encontrado: {}", patientId);
             throw new IllegalArgumentException("El paciente no existe");
         }
 
-        return orderRepository.findByPatientId(patientId);
+        String patientName = patient.getFirstName() + " " + patient.getLastName();
+
+        return orderRepository.findByPatientId(patientId).stream()
+                .map(order -> LabOrderResponseDTO.builder()
+                        .id(order.getId())
+                        .patientId(order.getPatientId())
+                        .patientName(patientName)
+                        .doctorId(order.getDoctorId())
+                        .examType(order.getExamType())
+                        .status(order.getStatus())
+                        .build())
+                .toList();
     }
 }
