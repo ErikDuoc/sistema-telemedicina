@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +32,7 @@ public class ClinicalRecordController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ClinicalRecordResponseDTO create(@Valid @RequestBody ClinicalRecordRequestDTO request){
         return service.create(request);
     }

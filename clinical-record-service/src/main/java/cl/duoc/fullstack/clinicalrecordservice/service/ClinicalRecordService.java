@@ -3,6 +3,7 @@ package cl.duoc.fullstack.clinicalrecordservice.service;
 import cl.duoc.fullstack.clinicalrecordservice.client.AppointmentClient;
 import cl.duoc.fullstack.clinicalrecordservice.dto.*;
 import cl.duoc.fullstack.clinicalrecordservice.exception.ClinicalRecordNotFoundException;
+import cl.duoc.fullstack.clinicalrecordservice.exception.DuplicateClinicalRecordException;
 import cl.duoc.fullstack.clinicalrecordservice.model.*;
 import cl.duoc.fullstack.clinicalrecordservice.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,10 @@ public class ClinicalRecordService {
         log.info("Crear historial clínico para paciente: {}, cita: {}", request.getPatientId(), request.getAppointmentId());
 
         appointmentClient.validateAppointment(request.getPatientId());
+
+        if (repository.findByAppointmentId(request.getAppointmentId()).isPresent()) {
+            throw new DuplicateClinicalRecordException("A clinical record already exists for appointment " + request.getAppointmentId());
+        }
 
         ClinicalRecord record = ClinicalRecord.builder()
                 .appointmentId(request.getAppointmentId())
