@@ -12,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -35,6 +36,7 @@ public class AppointmentController {
             @ApiResponse(responseCode = "400", description = "Datos inválidos")
     })
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public AppointmentResponseDTO create(@Valid @RequestBody AppointmentRequest request){
         return service.create(request);
     }
