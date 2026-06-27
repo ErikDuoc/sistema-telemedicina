@@ -2,6 +2,8 @@ package cl.duoc.fullstack.agendaservice.service;
 
 import cl.duoc.fullstack.agendaservice.client.DoctorClient;
 import cl.duoc.fullstack.agendaservice.dto.*;
+import cl.duoc.fullstack.agendaservice.exception.AgendaNotFoundException;
+import cl.duoc.fullstack.agendaservice.exception.DuplicateAgendaException;
 import cl.duoc.fullstack.agendaservice.model.Availability;
 import cl.duoc.fullstack.agendaservice.repository.AvailabilityRepository;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,10 @@ public class AgendaService {
     public AvailabilityResponseDTO create(AvailabilityRequestDTO dto) {
 
         DoctorResponseDTO doctor = doctorClient.getDoctor(dto.getDoctorId());
+
+        if (availabilityRepository.findByDoctorIdAndDayOfWeek(dto.getDoctorId(), dto.getDayOfWeek()).isPresent()) {
+            throw new DuplicateAgendaException("Availability already exists for doctor " + dto.getDoctorId() + " on " + dto.getDayOfWeek());
+        }
 
         Availability availability = Availability.builder()
                 .doctorId(dto.getDoctorId())
@@ -43,8 +49,13 @@ public class AgendaService {
 
         DoctorResponseDTO doctor = doctorClient.getDoctor(doctorId);
 
-        return availabilityRepository.findByDoctorId(doctorId)
-                .stream()
+        List<Availability> availabilities = availabilityRepository.findByDoctorId(doctorId);
+
+        if (availabilities.isEmpty()) {
+            throw new AgendaNotFoundException("No availabilities found for doctor with id: " + doctorId);
+        }
+
+        return availabilities.stream()
                 .map(a -> AvailabilityResponseDTO.builder()
                         .id(a.getId())
                         .doctorId(a.getDoctorId())
