@@ -3,6 +3,8 @@ package cl.duoc.fullstack.laboratoryservice.service;
 import cl.duoc.fullstack.laboratoryservice.client.NotificationClient;
 import cl.duoc.fullstack.laboratoryservice.client.PatientClient;
 import cl.duoc.fullstack.laboratoryservice.dto.*;
+import cl.duoc.fullstack.laboratoryservice.exception.DuplicateLaboratoryException;
+import cl.duoc.fullstack.laboratoryservice.exception.LaboratoryNotFoundException;
 import cl.duoc.fullstack.laboratoryservice.model.*;
 import cl.duoc.fullstack.laboratoryservice.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -94,7 +96,7 @@ public class LaboratoryService {
         LabOrder order = orderRepository.findById(orderId)
                 .orElseThrow(() -> {
                     log.warn("Orden de examen no encontrada: {}", orderId);
-                    return new RuntimeException("Orden de examen no encontrada");
+                    return new LaboratoryNotFoundException("Orden de examen no encontrada");
                 });
 
         // Validación 2: No se pueden subir resultados a orden cancelada
@@ -103,7 +105,13 @@ public class LaboratoryService {
             throw new IllegalArgumentException("No se pueden subir resultados a una orden cancelada");
         }
 
-        // Validación 3: Hallazgos no pueden estar vacíos
+        // Validación 3: No duplicar resultados para la misma orden
+        if (resultRepository.findByOrderId(orderId).isPresent()) {
+            log.warn("Resultados ya existen para orden: {}", orderId);
+            throw new DuplicateLaboratoryException("Results already exist for order " + orderId);
+        }
+
+        // Validación 4: Hallazgos no pueden estar vacíos
         if (dto.getFindings() == null || dto.getFindings().trim().isEmpty()) {
             log.warn("Hallazgos están vacíos para orden: {}", orderId);
             throw new IllegalArgumentException("Debe incluir los hallazgos del examen");

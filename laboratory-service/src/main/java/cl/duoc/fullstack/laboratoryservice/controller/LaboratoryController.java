@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,14 +51,14 @@ public class LaboratoryController {
     })
 
     @PutMapping("/results/{orderId}")
-    public String uploadResult(
+    public ResponseEntity<String> uploadResult(
             @PathVariable Long orderId,
             @Valid @RequestBody ResultRequestDTO dto
     ) {
 
         laboratoryService.uploadResult(orderId, dto);
 
-        return "Result uploaded successfully";
+        return ResponseEntity.ok("Result uploaded successfully");
     }
 
     @Operation(summary = "Obtener órdenes del paciente", description = "Obtiene todas las órdenes de laboratorio de un paciente específico con enlaces HATEOAS en _links")
