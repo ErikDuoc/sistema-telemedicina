@@ -1,7 +1,11 @@
-# Patient Service - Clínica Virtual
+# Patient Service
 
-Microservicio desarrollado con Spring Boot para la gestión de pacientes
-en una plataforma de telemedicina y gestión hospitalaria.
+Microservicio Spring Boot para la gestión de pacientes en una plataforma de telemedicina.
+
+## Requisitos
+
+- Java 21
+- Maven 3.8+
 
 ## Tecnologías
 
@@ -9,35 +13,33 @@ en una plataforma de telemedicina y gestión hospitalaria.
 - Spring Boot 3.5
 - Spring Data JPA
 - H2 Database
-- Spring Cloud OpenFeign (preparado para integración futura)
+- Spring Cloud OpenFeign
+- HATEOAS
 - Lombok
 - Maven
 
-## Arquitectura
+## Construcción y pruebas
 
-El proyecto utiliza arquitectura por capas:
+```bash
+# Compilar el proyecto
+mvn clean compile
 
-- controller
-- service
-- repository
-- dto
-- model
-- config
+# Ejecutar todos los tests
+mvn test
 
-## Funcionalidades
+# Ejecutar un test específico
+mvn test -Dtest=PatientServiceTest
+mvn test -Dtest=PatientControllerTest
 
-- Registrar pacientes
-- Listar pacientes
-- Actualizar pacientes
-- Eliminar pacientes
-- Gestión de contactos de emergencia
-- Validaciones con Jakarta Validation
-- Manejo global de excepciones
-- Datos de prueba automáticos
+# Empaquetar sin ejecutar tests
+mvn clean package -DskipTests
+```
+
+Los tests unitarios cubren la capa de servicio (9 tests) y controlador (5 tests) usando JUnit 5, Mockito y AssertJ.
 
 ## Endpoints
 
-### Obtener pacientes
+### Obtener todos los pacientes
 GET /api/patients
 
 ### Obtener paciente por ID
@@ -52,9 +54,23 @@ PUT /api/patients/{id}
 ### Eliminar paciente
 DELETE /api/patients/{id}
 
+## Puerto
+
+8081
+
 ## Consola H2
 
 http://localhost:8081/h2-console
 
-JDBC URL:
-jdbc:h2:mem:patientsdb
+## Pruebas
+
+| Capa | Archivo | Tests |
+|------|---------|-------|
+| Service | `PatientServiceTest` | 9 |
+| Controller | `PatientControllerTest` | 5 |
+
+**Patrones utilizados:**
+- `@ExtendWith(MockitoExtension.class)` para pruebas de servicio con mocks
+- `@WebMvcTest` + `@MockBean` para pruebas de controlador
+- `@Import(SecurityConfig.class)` para habilitar la configuración de seguridad en tests
+- Excepciones custom: `ResourceNotFoundException` → 404, `DuplicateResourceException` → 409
