@@ -2,6 +2,11 @@
 
 Microservicio Spring Boot para la gestión de médicos y especialidades.
 
+## Requisitos
+
+- Java 21
+- Maven 3.8+
+
 ## Tecnologías
 
 - Java 21
@@ -9,6 +14,25 @@ Microservicio Spring Boot para la gestión de médicos y especialidades.
 - Spring Data JPA
 - H2 Database
 - Maven
+
+## Construcción y pruebas
+
+```bash
+# Compilar el proyecto
+mvn clean compile
+
+# Ejecutar todos los tests
+mvn test
+
+# Ejecutar un test específico
+mvn test -Dtest=DoctorServiceTest
+mvn test -Dtest=DoctorControllerTest
+
+# Empaquetar sin ejecutar tests
+mvn clean package -DskipTests
+```
+
+Los tests unitarios cubren la capa de servicio (6 tests) y controlador (5 tests) usando JUnit 5, Mockito y AssertJ.
 
 ## Endpoints
 
@@ -36,3 +60,16 @@ Para utilizar MySQL:
 3.- Tener abierto docker desktop
 4.- Desde consola, sobre la carpeta del microservicio utilizamos docker compose up -d
 5.- Se puede revisar la base de datos desde Intellij configurando su puerto y contraseñas
+
+## Pruebas
+
+| Capa | Archivo | Tests |
+|------|---------|-------|
+| Service | `DoctorServiceTest` | 6 |
+| Controller | `DoctorControllerTest` | 5 |
+
+**Patrones utilizados:**
+- `@ExtendWith(MockitoExtension.class)` para pruebas de servicio con mocks
+- `@WebMvcTest` + `@MockBean` para pruebas de controlador
+- `@Import(SecurityConfig.class)` para habilitar la configuración de seguridad en tests
+- Excepciones custom: `DoctorNotFoundException` → 404, `DuplicateDoctorException` → 409, `SpecialtyNotFoundException` → 400
