@@ -102,6 +102,12 @@
       <artifactId>flyway-core</artifactId>
     </dependency>
 
+     <!-- FLYWAY MYSQL-->
+     <dependency>
+         <groupId>org.flywaydb</groupId>
+         <artifactId>flyway-mysql</artifactId>
+         <version>10.11.0</version>
+     </dependency>
     <!-- TEST -->
     <dependency>
       <groupId>org.springframework.boot</groupId>

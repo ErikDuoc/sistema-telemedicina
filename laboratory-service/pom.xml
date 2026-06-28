@@ -108,11 +108,17 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 <scope>runtime</scope>
 </dependency>
 
-<!-- FLYWAY -->
-<dependency>
-<groupId>org.flywaydb</groupId>
-<artifactId>flyway-core</artifactId>
-</dependency>
+    <!-- FLYWAY -->
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+    </dependency>
+    <!-- FLYWAY MYSQL-->
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-mysql</artifactId>
+        <version>10.11.0</version>
+    </dependency>
 
 </dependencies>
 
