@@ -44,6 +44,16 @@ public class NotificationController {
         return notificationService.sendNotification(dto);
     }
 
+    @Operation(summary = "Obtener notificación por ID", description = "Obtiene una notificación específica por su identificador con enlaces HATEOAS en _links")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Notificación encontrada"),
+            @ApiResponse(responseCode = "404", description = "Notificación no encontrada")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<EntityModel<NotificationResponseDTO>> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(notificationLinkAssembler.toModel(notificationService.getById(id)));
+    }
+
     @Operation(summary = "Obtener historial de notificaciones", description = "Obtiene todas las notificaciones recibidas por un usuario específico con enlaces HATEOAS en _links")
     @ApiResponse(responseCode = "200", description = "Historial obtenido exitosamente")
     @GetMapping("/history/{userId}")

@@ -55,13 +55,7 @@ public class PatientController {
     @GetMapping("/{id}")
     public ResponseEntity<EntityModel<PatientResponseDTO>> findById(@PathVariable Long id) {
         logger.info("Buscando paciente con ID: {}", id);
-        return patientService.findById(id)
-                .map(patientLinkAssembler::toModel)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> {
-                    logger.warn("Paciente no encontrado con ID: {}", id);
-                    return ResponseEntity.notFound().build();
-                });
+        return ResponseEntity.ok(patientLinkAssembler.toModel(patientService.findById(id)));
     }
 
     @Operation(summary = "Crear nuevo paciente", description = "Crea un nuevo paciente con datos personales y contactos de emergencia")
@@ -94,15 +88,9 @@ public class PatientController {
             @Valid @RequestBody PatientRequestDTO request) {
 
         logger.info("Actualizando paciente con ID: {}", id);
-        return patientService.update(id, request)
-                .map(updated -> {
-                    logger.info("Paciente actualizado correctamente con ID: {}", id);
-                    return ResponseEntity.ok(updated);
-                })
-                .orElseGet(() -> {
-                    logger.warn("No se encontró paciente para actualizar con ID: {}", id);
-                    return ResponseEntity.notFound().build();
-                });
+        PatientResponseDTO updated = patientService.update(id, request);
+        logger.info("Paciente actualizado correctamente con ID: {}", id);
+        return ResponseEntity.ok(updated);
     }
 
     @Operation(summary = "Eliminar paciente", description = "Elimina un paciente del sistema")
@@ -114,13 +102,8 @@ public class PatientController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
 
         logger.info("Eliminando paciente con ID: {}", id);
-        boolean deleted = patientService.delete(id);
-        if (deleted) {
-            logger.info("Paciente eliminado correctamente con ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } else {
-            logger.warn("No se encontró paciente para eliminar con ID: {}", id);
-            return ResponseEntity.notFound().build();
-        }
+        patientService.delete(id);
+        logger.info("Paciente eliminado correctamente con ID: {}", id);
+        return ResponseEntity.noContent().build();
     }
 }

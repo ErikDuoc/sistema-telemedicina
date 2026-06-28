@@ -2,6 +2,9 @@ package cl.duoc.fullstack.doctorservice.service;
 
 import cl.duoc.fullstack.doctorservice.dto.DoctorRequestDTO;
 import cl.duoc.fullstack.doctorservice.dto.DoctorResponseDTO;
+import cl.duoc.fullstack.doctorservice.exception.DoctorNotFoundException;
+import cl.duoc.fullstack.doctorservice.exception.DuplicateDoctorException;
+import cl.duoc.fullstack.doctorservice.exception.SpecialtyNotFoundException;
 import cl.duoc.fullstack.doctorservice.model.Doctor;
 import cl.duoc.fullstack.doctorservice.model.Specialty;
 import cl.duoc.fullstack.doctorservice.repository.DoctorRepository;
@@ -21,11 +24,11 @@ public class DoctorService {
     public DoctorResponseDTO createDoctor(DoctorRequestDTO dto) {
 
         if (doctorRepository.existsByNationalRegistry(dto.getNationalRegistry())) {
-            throw new RuntimeException("Doctor already exists with this registry number");
+            throw new DuplicateDoctorException("Doctor already exists with this national registry");
         }
 
         Specialty specialty = specialtyRepository.findById(dto.getSpecialtyId())
-                .orElseThrow(() -> new RuntimeException("Specialty not found"));
+                .orElseThrow(() -> new SpecialtyNotFoundException("Specialty not found with id: " + dto.getSpecialtyId()));
 
         Doctor doctor = Doctor.builder()
                 .firstName(dto.getFirstName())
@@ -51,7 +54,7 @@ public class DoctorService {
     public DoctorResponseDTO getDoctorById(Long id) {
 
         Doctor doctor = doctorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor not found with id: " + id));
 
         return mapToResponse(doctor);
     }

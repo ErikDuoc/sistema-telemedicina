@@ -3,6 +3,8 @@ package cl.duoc.fullstack.paymentservice.service;
 import cl.duoc.fullstack.paymentservice.dto.InsuranceDTO;
 import cl.duoc.fullstack.paymentservice.dto.PaymentRequestDTO;
 import cl.duoc.fullstack.paymentservice.dto.PaymentResponseDTO;
+import cl.duoc.fullstack.paymentservice.exception.DuplicatePaymentException;
+import cl.duoc.fullstack.paymentservice.exception.PaymentNotFoundException;
 import cl.duoc.fullstack.paymentservice.model.*;
 import cl.duoc.fullstack.paymentservice.repository.InsuranceRepository;
 import cl.duoc.fullstack.paymentservice.repository.TransactionRepository;
@@ -50,7 +52,7 @@ public class PaymentService {
 
         if (existingApprovedPayment) {
             log.warn("Pago ya existe para cita: {}", dto.getAppointmentId());
-            throw new IllegalArgumentException("Ya existe un pago aprobado para esta cita");
+                    throw new DuplicatePaymentException("Ya existe un pago aprobado para esta cita");
         }
 
         // Crear transacción
@@ -85,7 +87,7 @@ public class PaymentService {
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Transacción no encontrada: {}", id);
-                    return new RuntimeException("Transacción no encontrada");
+                    return new PaymentNotFoundException("Transacción no encontrada: " + id);
                 });
         return mapToResponse(transaction);
     }

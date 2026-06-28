@@ -2,6 +2,7 @@ package cl.duoc.fullstack.videoconsultationservice.service;
 
 import cl.duoc.fullstack.videoconsultationservice.client.AppointmentClient;
 import cl.duoc.fullstack.videoconsultationservice.dto.*;
+import cl.duoc.fullstack.videoconsultationservice.exception.DuplicateVideoConsultationException;
 import cl.duoc.fullstack.videoconsultationservice.exception.VideoConsultationNotFoundException;
 import cl.duoc.fullstack.videoconsultationservice.model.VideoConsultation;
 import cl.duoc.fullstack.videoconsultationservice.repository.VideoConsultationRepository;
@@ -19,6 +20,10 @@ public class VideoConsultationService {
     private final AppointmentClient appointmentClient;
 
     public VideoConsultationResponseDTO create(VideoConsultationRequestDTO request){
+
+        if (repository.existsByAppointmentId(request.getAppointmentId())) {
+            throw new DuplicateVideoConsultationException("Ya existe una videoconsulta para la cita: " + request.getAppointmentId());
+        }
 
         appointmentClient.validateAppointment(request.getAppointmentId());
 
