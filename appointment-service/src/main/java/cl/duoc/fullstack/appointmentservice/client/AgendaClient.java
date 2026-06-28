@@ -8,7 +8,4 @@ public interface AgendaClient {
 
     @GetMapping("/api/agenda/doctor/{id}")
     Object getDoctorAgenda(@PathVariable Long id);
-
-    @PatchMapping("/api/agenda/blocks/{id}/reserve")
-    void reserveBlock(@PathVariable Long id);
 }
