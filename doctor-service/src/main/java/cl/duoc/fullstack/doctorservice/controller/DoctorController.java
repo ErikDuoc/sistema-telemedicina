@@ -31,6 +31,12 @@ public class DoctorController {
     private final DoctorService doctorService;
     private final DoctorLinkAssembler doctorLinkAssembler;
 
+    @Operation(summary = "Crear doctor", description = "Registra un nuevo médico en el sistema")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Doctor creado exitosamente"),
+            @ApiResponse(responseCode = "400", description = "Datos inválidos"),
+            @ApiResponse(responseCode = "409", description = "Doctor duplicado")
+    })
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public DoctorResponseDTO createDoctor(@Valid @RequestBody DoctorRequestDTO dto) {

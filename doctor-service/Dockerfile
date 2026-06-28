@@ -27,7 +27,7 @@ WORKDIR /app
 # Copiar el jar compilado (usa comodín para el nombre del jar generado)
 COPY --from=build /workspace/target/*.jar /app/app.jar
 
-EXPOSE 8080
+EXPOSE 8082
 
 # Valores por defecto; pueden ser sobrescritos por docker-compose o docker run
 ENV JAVA_OPTS="-Xms256m -Xmx512m"
