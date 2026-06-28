@@ -2,6 +2,7 @@ package cl.duoc.fullstack.patientservice.controller;
 
 import cl.duoc.fullstack.patientservice.config.SecurityConfig;
 import cl.duoc.fullstack.patientservice.dto.*;
+import cl.duoc.fullstack.patientservice.exception.DuplicateResourceException;
 import cl.duoc.fullstack.patientservice.exception.ResourceNotFoundException;
 import cl.duoc.fullstack.patientservice.service.PatientLinkAssembler;
 import cl.duoc.fullstack.patientservice.service.PatientService;
@@ -120,5 +121,85 @@ class PatientControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void create_shouldReturn409_whenDuplicateRut() throws Exception {
+        PatientRequestDTO request = new PatientRequestDTO(
+                "20.123.456-7", "Carlos", "González Martínez",
+                LocalDate.of(1990, 5, 15), "Masculino",
+                "carlos@email.com", "FONASA",
+                List.of(new EmergencyContactDTO(null, "María González", "Madre", "+56912345678"))
+        );
+
+        when(patientService.create(any(PatientRequestDTO.class)))
+                .thenThrow(new DuplicateResourceException("Ya existe un paciente con el RUT: 20.123.456-7"));
+
+        mockMvc.perform(post("/api/patients")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("DUPLICATE_RESOURCE"));
+    }
+
+    @Test
+    void update_shouldReturn200() throws Exception {
+        PatientRequestDTO request = new PatientRequestDTO(
+                "20.123.456-7", "Carlos", "González Martínez",
+                LocalDate.of(1990, 5, 15), "Masculino",
+                "carlos@email.com", "FONASA",
+                List.of(new EmergencyContactDTO(null, "María González", "Madre", "+56912345678"))
+        );
+
+        PatientResponseDTO response = new PatientResponseDTO(
+                1L, "20.123.456-7", "Carlos", "González Martínez",
+                LocalDate.of(1990, 5, 15), "Masculino",
+                "carlos@email.com", "FONASA",
+                List.of(new EmergencyContactDTO(1L, "María González", "Madre", "+56912345678"))
+        );
+
+        when(patientService.update(eq(1L), any(PatientRequestDTO.class))).thenReturn(response);
+
+        mockMvc.perform(put("/api/patients/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.nombre").value("Carlos"));
+    }
+
+    @Test
+    void update_shouldReturn404_whenNotFound() throws Exception {
+        PatientRequestDTO request = new PatientRequestDTO(
+                "20.123.456-7", "Carlos", "González Martínez",
+                LocalDate.of(1990, 5, 15), "Masculino",
+                "carlos@email.com", "FONASA",
+                List.of(new EmergencyContactDTO(null, "María González", "Madre", "+56912345678"))
+        );
+
+        when(patientService.update(eq(99L), any(PatientRequestDTO.class)))
+                .thenThrow(new ResourceNotFoundException("Patient", "id", 99L));
+
+        mockMvc.perform(put("/api/patients/99")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"));
+    }
+
+    @Test
+    void delete_shouldReturn204() throws Exception {
+        mockMvc.perform(delete("/api/patients/1"))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void delete_shouldReturn404_whenNotFound() throws Exception {
+        doThrow(new ResourceNotFoundException("Patient", "id", 99L))
+                .when(patientService).delete(99L);
+
+        mockMvc.perform(delete("/api/patients/99"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("NOT_FOUND"));
     }
 }

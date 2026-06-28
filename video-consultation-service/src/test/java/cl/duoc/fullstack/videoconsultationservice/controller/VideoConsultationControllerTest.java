@@ -3,6 +3,7 @@ package cl.duoc.fullstack.videoconsultationservice.controller;
 import cl.duoc.fullstack.videoconsultationservice.config.SecurityConfig;
 import cl.duoc.fullstack.videoconsultationservice.dto.VideoConsultationRequestDTO;
 import cl.duoc.fullstack.videoconsultationservice.dto.VideoConsultationResponseDTO;
+import cl.duoc.fullstack.videoconsultationservice.exception.DuplicateVideoConsultationException;
 import cl.duoc.fullstack.videoconsultationservice.exception.VideoConsultationNotFoundException;
 import cl.duoc.fullstack.videoconsultationservice.service.VideoConsultationLinkAssembler;
 import cl.duoc.fullstack.videoconsultationservice.service.VideoConsultationService;
@@ -101,5 +102,21 @@ class VideoConsultationControllerTest {
         mockMvc.perform(get("/api/video-consultations/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("NOT_FOUND"));
+    }
+
+    @Test
+    void create_shouldReturn409_whenDuplicate() throws Exception {
+        VideoConsultationRequestDTO request = new VideoConsultationRequestDTO();
+        request.setAppointmentId(1L);
+        request.setPlatform("Zoom");
+
+        when(videoConsultationService.create(any(VideoConsultationRequestDTO.class)))
+                .thenThrow(new DuplicateVideoConsultationException("Ya existe una videoconsulta para la cita: 1"));
+
+        mockMvc.perform(post("/api/video-consultations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("CONFLICT"));
     }
 }

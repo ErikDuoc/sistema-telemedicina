@@ -4,6 +4,7 @@ import cl.duoc.fullstack.clinicalrecordservice.config.SecurityConfig;
 import cl.duoc.fullstack.clinicalrecordservice.dto.ClinicalRecordRequestDTO;
 import cl.duoc.fullstack.clinicalrecordservice.dto.ClinicalRecordResponseDTO;
 import cl.duoc.fullstack.clinicalrecordservice.exception.ClinicalRecordNotFoundException;
+import cl.duoc.fullstack.clinicalrecordservice.exception.DuplicateClinicalRecordException;
 import cl.duoc.fullstack.clinicalrecordservice.service.ClinicalRecordLinkAssembler;
 import cl.duoc.fullstack.clinicalrecordservice.service.ClinicalRecordService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -105,5 +106,24 @@ class ClinicalRecordControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void create_shouldReturn409_whenDuplicate() throws Exception {
+        ClinicalRecordRequestDTO request = new ClinicalRecordRequestDTO();
+        request.setAppointmentId(1L);
+        request.setPatientId(5L);
+        request.setDoctorId(3L);
+        request.setDiagnosis("Hipertensión arterial");
+        request.setTreatment("Medicación antihipertensiva");
+
+        when(service.create(any(ClinicalRecordRequestDTO.class)))
+                .thenThrow(new DuplicateClinicalRecordException("Ya existe un registro clínico para la cita: 1"));
+
+        mockMvc.perform(post("/api/clinical-records")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message").value("Ya existe un registro clínico para la cita: 1"));
     }
 }

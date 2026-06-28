@@ -4,6 +4,7 @@ import cl.duoc.fullstack.paymentservice.config.SecurityConfig;
 import cl.duoc.fullstack.paymentservice.dto.InsuranceDTO;
 import cl.duoc.fullstack.paymentservice.dto.PaymentRequestDTO;
 import cl.duoc.fullstack.paymentservice.dto.PaymentResponseDTO;
+import cl.duoc.fullstack.paymentservice.exception.DuplicatePaymentException;
 import cl.duoc.fullstack.paymentservice.exception.PaymentNotFoundException;
 import cl.duoc.fullstack.paymentservice.model.PaymentMethod;
 import cl.duoc.fullstack.paymentservice.model.PaymentStatus;
@@ -148,5 +149,22 @@ class PaymentControllerTest {
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("BAD_REQUEST"));
+    }
+
+    @Test
+    void processPayment_shouldReturn409_whenDuplicate() throws Exception {
+        PaymentRequestDTO request = new PaymentRequestDTO();
+        request.setAppointmentId(1L);
+        request.setAmount(50000.0);
+        request.setPaymentMethod(PaymentMethod.CREDIT_CARD);
+
+        when(paymentService.processPayment(any(PaymentRequestDTO.class)))
+                .thenThrow(new DuplicatePaymentException("Ya existe un pago para la cita: 1"));
+
+        mockMvc.perform(post("/api/payments/process")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("CONFLICT"));
     }
 }
