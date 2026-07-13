@@ -27,10 +27,9 @@
 - Fallbacks: prevenir fallas en cascada
 - Timeouts de Feign: connectTimeout/readTimeout
 
-## Dificultades y soluciones
+## Observaciones
 
-- Push interrumpido por autenticación en la máquina local; dejé los commits locales para revisión del equipo antes de pushear.
-- Maven no está disponible en este entorno, por lo que no pude ejecutar `mvn test` aquí; se recomienda ejecutar `mvn test -pl appointment-service,...` localmente.
+- Las pruebas de integración y la ejecución completa deben realizarse localmente; consultar las instrucciones en el README del repositorio.
 
 ## Commits relevantes (últimos)
 
@@ -40,6 +39,3 @@
 - d1651aa feat: refactorizar @FeignClient para usar Eureka discovery
 - ce34bf2 feat: eliminar context-path de todos los servicios
 
----
-
-_Puedes revisar estos cambios localmente y, cuando el equipo confirme, puedo pushear todo al remoto._
