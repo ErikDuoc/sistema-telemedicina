@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS lab_orders (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    patient_id BIGINT NOT NULL,
+    order_type VARCHAR(100) NOT NULL,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_patient (patient_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS lab_results (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    order_id BIGINT NOT NULL,
+    test_name VARCHAR(255) NOT NULL,
+    result TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'COMPLETED',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_order (order_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS insurances (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL UNIQUE,
+    coverage_percentage INT DEFAULT 80,
+    status VARCHAR(50) DEFAULT 'ACTIVE',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS payments (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    appointment_id BIGINT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    insurance_id BIGINT,
+    status VARCHAR(50) DEFAULT 'PENDING',
+    transaction_id VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+

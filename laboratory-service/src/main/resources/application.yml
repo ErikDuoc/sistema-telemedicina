@@ -21,7 +21,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 patient-service:
   url: http://localhost:8081

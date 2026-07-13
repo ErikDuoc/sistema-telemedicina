@@ -28,16 +28,16 @@
 | INF-02 | API Gateway centralizado | Infraestructura | ✅ | `http://localhost:8080` | `gateway-service/` | Rutas `lb://` configuradas |
 | INF-03 | Rutas load-balanced (lb://) | Infraestructura | ✅ | `gateway-service/application.yml` | Gateway | 10 rutas a servicios |
 | INF-04 | Registro dinámico de servicios | Infraestructura | ✅ | Eureka Dashboard | Cada pom.xml | spring-cloud-starter-netflix-eureka-client |
-| INF-05 | Docker Compose orquestado | Infraestructura | ✅ | `docker-compose.yml` | Raíz | Healthchecks + orden arranque |
+| INF-05 | Docker Compose orquestado | Infraestructura | 🔄 | `docker-compose.yml` | Raíz | Configurado, pendiente validación con `docker-compose up` |
 
 ### 1.2 Persistencia y Base de Datos
 
 | ID | Requerimiento | Tipo | Estado | Endpoint/Evidencia | Archivo(s) | Notas |
 |----|---|---|---|---|---|---|
-| INF-06 | MySQL centralizado | Infraestructura | ✅ | `mysql:3307` | `docker-compose.yml` | 10 esquemas (uno por servicio) |
-| INF-07 | Migraciones Flyway | Infraestructura | 🔄 | `*/src/main/resources/db/migration/` | Genaro | Pendiente Genaro Lagos |
-| INF-08 | Variables de entorno | Infraestructura | ⚠️ | `.env.example` | Raíz | Pendiente Genaro Lagos |
-| INF-09 | Perfiles de configuración | Infraestructura | ✅ | `application.yml` + `application-mysql.yml` | Cada servicio | Local + Docker |
+| INF-06 | MySQL centralizado | Infraestructura | 🔄 | `mysql:3307` | `docker-compose.yml` | 10 esquemas, pendiente validación en Docker |
+| INF-07 | Migraciones Flyway | Infraestructura | 🔄 | `*/src/main/resources/db/migration/` | Genaro | 14 migraciones presentes en total; 13 agregadas en esta tarea; ejecución pendiente de validación |
+| INF-08 | Variables de entorno | Infraestructura | ✅ | `.env.example` | Raíz | 67 variables sin secretos reales |
+| INF-09 | Perfiles de configuración | Infraestructura | 🔄 | `application.yml` + `application-mysql.yml` | Cada servicio | Configurados, pendiente validación compile |
 
 ### 1.3 Comunicación Remota
 
@@ -52,8 +52,8 @@
 | ID | Requerimiento | Tipo | Estado | Endpoint/Evidencia | Archivo(s) | Notas |
 |----|---|---|---|---|---|---|
 | INF-13 | Dockerfile per-servicio | Infraestructura | ✅ | `*/Dockerfile` | Cada servicio | Multi-stage, JDK 21 |
-| INF-14 | Docker Compose completo | Infraestructura | ✅ | `docker-compose.yml` | Raíz | 11 servicios orchestrados |
-| INF-15 | Healthchecks | Infraestructura | ✅ | docker-compose.yml | MySQL, Eureka | Garantiza orden correcto |
+| INF-14 | Docker Compose completo | Infraestructura | 🔄 | `docker-compose.yml` | Raíz | Configurado, pendiente ejecución |
+| INF-15 | Healthchecks | Infraestructura | 🔄 | docker-compose.yml | MySQL, Eureka | Configurados, pendiente validación Docker |
 | INF-16 | Despliegue Render | Infraestructura | ❌ | - | - | Pendiente Genaro Lagos |
 
 ### 1.5 Seguridad y Configuración
@@ -61,7 +61,7 @@
 | ID | Requerimiento | Tipo | Estado | Endpoint/Evidencia | Archivo(s) | Notas |
 |----|---|---|---|---|---|---|
 | INF-17 | JWT Authentication | Infraestructura | ✅ | Auth endpoints | `*/config/JwtAuthenticationFilter` | Implementado en servicios |
-| INF-18 | Protección de secretos | Infraestructura | ⚠️ | `.env.example` sin valores | Raíz | Pendiente Genaro Lagos |
+| INF-18 | Protección de secretos | Infraestructura | ✅ | `.env.example` sin valores, .env ignorado | Raíz | .env en .gitignore, .env.example es público |
 | INF-19 | CORS habilitado | Infraestructura | ✅ | Gateway CORS config | `gateway-service/` | Cross-origin requests permitidos |
 
 ---

@@ -98,6 +98,8 @@ mvn -version     # Maven 3.8+
 
 ## 🚀 Inicio Rápido
 
+### Desarrollo Local (H2 - Recomendado para pruebas rápidas)
+
 ```bash
 # 1. Compilar todo el proyecto
 mvn clean install
@@ -117,6 +119,51 @@ mvn spring-boot:run -pl patient-service
 ```
 
 Para desarrollo local se usa H2 en memoria (perfil por defecto). No requiere instalación de base de datos externa.
+
+### Docker Compose (Recomendado para integración)
+
+```bash
+# 1. Crear archivo .env desde el ejemplo
+cp .env.example .env
+
+# 2. Compilar todo
+mvn clean install
+
+# 3. Levantar todos los servicios con Docker Compose
+docker-compose up -d
+
+# 4. Esperar a que Eureka y los servicios se levanten (~60 segundos)
+sleep 60
+
+# 5. Verificar que Eureka esté disponible
+curl http://localhost:8761/eureka/apps
+
+# 6. Acceder a través del Gateway
+curl http://localhost:8080/api/patients
+
+# 7. Ver logs
+docker-compose logs -f patient
+
+# 8. Detener servicios
+docker-compose down
+
+# 9. Limpiar volúmenes (cuidado: elimina datos)
+docker-compose down -v
+```
+
+### Migraciones Flyway
+
+Las migraciones Flyway se ejecutan automáticamente al iniciar cada servicio con perfil MySQL:
+
+```bash
+# Ver migraciones aplicadas
+docker-compose exec mysql mysql -upatients -ppatients123 patients_db
+SELECT * FROM flyway_schema_history;
+```
+
+Cada servicio incluye migraciones en `src/main/resources/db/migration/`:
+- **V1__*.sql**: Crea tablas base
+- **V2__*.sql**: Inserta datos iniciales (seeds)
 
 ---
 
