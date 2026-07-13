@@ -3,7 +3,7 @@ package cl.duoc.fullstack.appointmentservice.client;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name="doctor-service", url="${doctor-service.url}")
+@FeignClient(name="doctor-service", fallback = DoctorClientFallback.class)
 public interface DoctorClient {
 
     @GetMapping("/api/doctors/{id}/profile")
