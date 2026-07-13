@@ -1,1 +1,35 @@
-﻿
+﻿server:
+  port: 8085
+
+spring:
+  application:
+    name: agenda-service
+
+  # JWT Configuration - Use environment variables in production
+  jwt:
+    secret: ${JWT_SECRET:your-secret-key-change-in-production-min-32-characters-long-for-security}
+    expiration: ${JWT_EXPIRATION:86400000}
+
+  datasource:
+    url: jdbc:h2:mem:agendadb
+    driver-class-name: org.h2.Driver
+    username: sa
+
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+doctor-service:
+  url: http://localhost:8082
+
+## Swagger / OpenAPI
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
