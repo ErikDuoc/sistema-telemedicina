@@ -1,7 +1,5 @@
-server:
+﻿server:
   port: 8084
-  servlet:
-    context-path: /paymentservice
 
 spring:
   application:

@@ -1,7 +1,5 @@
-server:
+﻿server:
   port: 8085
-  servlet:
-    context-path: /agendaservice
 
 spring:
   application:

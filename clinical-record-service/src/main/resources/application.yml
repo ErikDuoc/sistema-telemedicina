@@ -1,4 +1,4 @@
-spring:
+﻿spring:
   application:
     name: clinical-record-service
 
@@ -31,8 +31,6 @@ springdoc:
 ## Revisar merge
 server:
   port: 8088
-  servlet:
-    context-path: /clinicalrecordservice
 
 # Feign client base URLs (defaults for local development)
 appointment-service:

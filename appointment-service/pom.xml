@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -18,7 +18,7 @@
     <version>0.0.1-SNAPSHOT</version>
 
     <name>AppointmentService</name>
-    <description>Microservicio de gestión de citas médicas para clínica</description>
+    <description>Microservicio de gestiÃ³n de citas mÃ©dicas para clÃ­nica</description>
 
     <properties>
         <java.version>21</java.version>
@@ -151,7 +151,10 @@
             <artifactId>flyway-mysql</artifactId>
             <version>10.11.0</version>
         </dependency>
-    </dependencies>
+            <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency></dependencies>
 
     <!-- VERSIONES DE SPRING CLOUD -->
     <dependencyManagement>
@@ -163,7 +166,10 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-        </dependencies>
+                <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency></dependencies>
     </dependencyManagement>
 
     <build>
@@ -196,3 +202,4 @@
     </build>
 
 </project>
+

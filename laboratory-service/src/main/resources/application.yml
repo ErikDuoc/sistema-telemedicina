@@ -1,7 +1,5 @@
-server:
+﻿server:
   port: 8086
-  servlet:
-    context-path: /laboratoryservice
 
 spring:
   application:
