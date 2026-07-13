@@ -1,6 +1,5 @@
 version: '3.8'
 
-# Docker Compose para desarrollo: levanta MySQL y los microservicios (doctor, agenda)
 services:
   mysql:
     image: mysql:8.0
@@ -18,60 +17,45 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - default
 
-  doctor:
+  discovery-server:
     build:
-      context: ./doctor-service
+      context: ./discovery-server
       dockerfile: Dockerfile
-    image: doctor-service:latest
+    image: discovery-server:latest
+    container_name: discovery-server
     ports:
-      - "8082:8082"
+      - "8761:8761"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/doctors_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: doctors
-      SPRING_DATASOURCE_PASSWORD: doctors123
-    depends_on:
-      mysql:
-        condition: service_healthy
-    restart: on-failure
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/eureka/apps"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - default
 
-  agenda:
+  gateway:
     build:
-      context: ./agenda-service
+      context: ./gateway-service
       dockerfile: Dockerfile
-    image: agenda-service:latest
+    image: gateway-service:latest
+    container_name: gateway-service
     ports:
-      - "8085:8085"
+      - "8080:8080"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/agenda_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: agenda
-      SPRING_DATASOURCE_PASSWORD: agenda123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
     depends_on:
-      mysql:
+      discovery-server:
         condition: service_healthy
-    restart: on-failure
-
-  appointment:
-    build:
-      context: ./appointment-service
-      dockerfile: Dockerfile
-    image: appointment-service:latest
-    ports:
-      - "8087:8087"
-    environment:
-      SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appointment_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: appointment
-      SPRING_DATASOURCE_PASSWORD: appointment123
-    depends_on:
-      mysql:
-        condition: service_healthy
-    restart: on-failure
+    restart: unless-stopped
+    networks:
+      - default
 
   patient:
     build:
@@ -82,50 +66,40 @@ services:
       - "8081:8081"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/patients_db?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: patients
       SPRING_DATASOURCE_PASSWORD: patients123
     depends_on:
       mysql:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
     restart: on-failure
+    networks:
+      - default
 
-  payment:
+  doctor:
     build:
-      context: ./payment-service
+      context: ./doctor-service
       dockerfile: Dockerfile
-    image: payment-service:latest
+    image: doctor-service:latest
     ports:
-      - "8084:8084"
+      - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/payments_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: payments
-      SPRING_DATASOURCE_PASSWORD: payments123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/doctors_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: doctors
+      SPRING_DATASOURCE_PASSWORD: doctors123
     depends_on:
       mysql:
         condition: service_healthy
-    restart: on-failure
-
-  clinical-record:
-    build:
-      context: ./clinical-record-service
-      dockerfile: Dockerfile
-    image: clinical-record-service:latest
-    ports:
-      - "8088:8088"
-    environment:
-      SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/clinical_records_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: clinical_records
-      SPRING_DATASOURCE_PASSWORD: clinical123
-    depends_on:
-      mysql:
+      discovery-server:
         condition: service_healthy
     restart: on-failure
+    networks:
+      - default
 
   notification:
     build:
@@ -136,50 +110,62 @@ services:
       - "8083:8083"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/notifications_db?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: notifications
       SPRING_DATASOURCE_PASSWORD: notifications123
     depends_on:
       mysql:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
     restart: on-failure
+    networks:
+      - default
 
-  prescription:
+  payment:
     build:
-      context: ./prescription-service
+      context: ./payment-service
       dockerfile: Dockerfile
-    image: prescription-service:latest
+    image: payment-service:latest
     ports:
-      - "8089:8089"
+      - "8084:8084"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/prescriptions_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: prescriptions
-      SPRING_DATASOURCE_PASSWORD: prescriptions123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/payments_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: payments
+      SPRING_DATASOURCE_PASSWORD: payments123
     depends_on:
       mysql:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
     restart: on-failure
+    networks:
+      - default
 
-  video-consultation:
+  agenda:
     build:
-      context: ./video-consultation-service
+      context: ./agenda-service
       dockerfile: Dockerfile
-    image: video-consultation-service:latest
+    image: agenda-service:latest
     ports:
-      - "8091:8091"
+      - "8085:8085"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/video_consultations_db?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: video_consultations
-      SPRING_DATASOURCE_PASSWORD: video_consultations123
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/agenda_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: agenda
+      SPRING_DATASOURCE_PASSWORD: agenda123
     depends_on:
       mysql:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
     restart: on-failure
+    networks:
+      - default
 
   laboratory:
     build:
@@ -190,14 +176,106 @@ services:
       - "8086:8086"
     environment:
       SPRING_PROFILES_ACTIVE: mysql
-      JAVA_OPTS: "-Xms512m -Xmx1g"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/lab_db?useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: lab
       SPRING_DATASOURCE_PASSWORD: lab123
     depends_on:
       mysql:
         condition: service_healthy
+      discovery-server:
+        condition: service_healthy
     restart: on-failure
+    networks:
+      - default
+
+  appointment:
+    build:
+      context: ./appointment-service
+      dockerfile: Dockerfile
+    image: appointment-service:latest
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/appointment_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: appointment
+      SPRING_DATASOURCE_PASSWORD: appointment123
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - default
+
+  clinical-record:
+    build:
+      context: ./clinical-record-service
+      dockerfile: Dockerfile
+    image: clinical-record-service:latest
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/clinical_records_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: clinical_records
+      SPRING_DATASOURCE_PASSWORD: clinical123
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - default
+
+  prescription:
+    build:
+      context: ./prescription-service
+      dockerfile: Dockerfile
+    image: prescription-service:latest
+    ports:
+      - "8089:8089"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/prescriptions_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: prescriptions
+      SPRING_DATASOURCE_PASSWORD: prescriptions123
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - default
+
+  video-consultation:
+    build:
+      context: ./video-consultation-service
+      dockerfile: Dockerfile
+    image: video-consultation-service:latest
+    ports:
+      - "8091:8091"
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://discovery-server:8761/eureka/
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/video_consultations_db?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: video_consultations
+      SPRING_DATASOURCE_PASSWORD: video_consultations123
+    depends_on:
+      mysql:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    restart: on-failure
+    networks:
+      - default
 
 volumes:
   mysql_data:

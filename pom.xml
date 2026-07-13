@@ -22,6 +22,7 @@
         <module>payment-service</module>
         <module>prescription-service</module>
         <module>video-consultation-service</module>
+        <module>discovery-server</module>
         <module>gateway-service</module>
     </modules>
 
