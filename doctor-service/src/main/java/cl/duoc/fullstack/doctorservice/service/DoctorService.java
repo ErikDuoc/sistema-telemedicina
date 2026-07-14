@@ -61,13 +61,15 @@ public class DoctorService {
 
     private DoctorResponseDTO mapToResponse(Doctor doctor) {
 
+        String specialtyName = doctor.getSpecialty() != null ? doctor.getSpecialty().getName() : null;
+
         return DoctorResponseDTO.builder()
                 .id(doctor.getId())
                 .firstName(doctor.getFirstName())
                 .lastName(doctor.getLastName())
                 .nationalRegistry(doctor.getNationalRegistry())
                 .email(doctor.getEmail())
-                .specialtyName(doctor.getSpecialty().getName())
+                .specialtyName(specialtyName)
                 .build();
     }
 }
