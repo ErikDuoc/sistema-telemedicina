@@ -5,43 +5,43 @@ spring:
     gateway:
       routes:
         - id: patient-service
-          uri: lb://patient-service
+          uri: lb://PATIENT-SERVICE
           predicates:
             - Path=/api/patients/**
         - id: doctor-service
-          uri: lb://doctor-service
+          uri: lb://DOCTOR-SERVICE
           predicates:
             - Path=/api/doctors/**
         - id: notification-service
-          uri: lb://notification-service
+          uri: lb://NOTIFICATION-SERVICE
           predicates:
             - Path=/api/notifications/**
         - id: payment-service
-          uri: lb://payment-service
+          uri: lb://PAYMENT-SERVICE
           predicates:
             - Path=/api/payments/**
         - id: agenda-service
-          uri: lb://agenda-service
+          uri: lb://AGENDA-SERVICE
           predicates:
             - Path=/api/agenda/**
         - id: laboratory-service
-          uri: lb://laboratory-service
+          uri: lb://LABORATORY-SERVICE
           predicates:
             - Path=/api/lab/**
         - id: appointment-service
-          uri: lb://appointment-service
+          uri: lb://APPOINTMENT-SERVICE
           predicates:
             - Path=/api/appointments/**
         - id: clinical-record-service
-          uri: lb://clinical-record-service
+          uri: lb://CLINICAL-RECORD-SERVICE
           predicates:
             - Path=/api/clinical-records/**
         - id: prescription-service
-          uri: lb://prescription-service
+          uri: lb://PRESCRIPTION-SERVICE
           predicates:
             - Path=/api/prescriptions/**
         - id: video-consultation-service
-          uri: lb://video-consultation-service
+          uri: lb://VIDEO-CONSULTATION-SERVICE
           predicates:
             - Path=/api/video-consultations/**
 

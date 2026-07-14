@@ -17,6 +17,8 @@ public class LabOrder {
     private Long id;
 
     private Long patientId;
+    @Column(name = "order_type", nullable = false)
+    private String orderType;
     private Long doctorId;
     private String examType;
     private String status;

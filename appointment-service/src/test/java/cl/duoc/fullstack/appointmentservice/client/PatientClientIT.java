@@ -1,18 +1,14 @@
-﻿package cl.duoc.fullstack.appointmentservice.client;
-
+package cl.duoc.fullstack.appointmentservice.client;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @DisplayName("Patient Feign Client - Integration Tests")
 class PatientClientIT {
-
     @Autowired
     private PatientClient patientClient;
-
     @Test
     @DisplayName("Obtener paciente por ID (servicio UP)")
     void obtenerPaciente_conIdValido() {
@@ -24,7 +20,6 @@ class PatientClientIT {
             assertNotNull(e, "Exception fue lanzada (esperado si servicio no disponible)");
         }
     }
-
     @Test
     @DisplayName("Fallback se activa si servicio no disponible")
     void obtenerPaciente_fallback() {

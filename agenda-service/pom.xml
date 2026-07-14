@@ -129,10 +129,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 <type>pom</type>
 <scope>import</scope>
 </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency></dependencies>
+</dependencies>
 </dependencyManagement>
 
 
